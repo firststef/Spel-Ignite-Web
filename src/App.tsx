@@ -9,7 +9,7 @@ import "ace-builds/src-noconflict/mode-java";
 import "ace-builds/src-noconflict/theme-github";
 
 import {get} from 'http';
-const server_l = 'spel-ignite-server.firststef.repl.co';
+const server_l = 'localhost';
 
 interface IProps {
 }
@@ -76,11 +76,11 @@ class App extends React.Component<IProps, IState> {
         let $ = this;
         get({
             hostname: server_l,
-            path: '/api/compile?code=\"' + code + '\"',
+            path: '/api/compile?code=' + code,
             port: 80,
             method: 'GET',
             headers: {
-                'Access-Control-Allow-Origin': '*'
+
             }
         }, (res)=>{
             var str = '';
