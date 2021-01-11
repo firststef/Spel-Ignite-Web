@@ -25,8 +25,8 @@ interface IState {
 //todo unde am ramas: add first challange
 
 class App extends React.Component<IProps, IState> {
-    //server_l = 'Spel-Ignite-Server.firststef.repl.co';
-    server_l = 'localhost';
+    server_l = ''; // on server
+    //server_l = 'localhost';
 
     constructor(props:any){
         super(props);
@@ -127,7 +127,7 @@ class App extends React.Component<IProps, IState> {
         get({
             hostname: $.server_l,
             path: '/api/compile?code=' + Buffer.from(code).toString('base64'),
-            port: 80,
+            //port: 80,
             method: 'GET',
             headers: {
 
