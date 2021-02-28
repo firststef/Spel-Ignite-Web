@@ -1,12 +1,13 @@
 import React, { CSSProperties, useState } from 'react';
 import './App.css';
 
-import { Button, Container, Divider, Grid, Header, List, Message, Segment } from 'semantic-ui-react';
+import { Container, Grid, Header, Message, Segment, Image, Tab, Button, Icon, TextArea } from 'semantic-ui-react';
 
 import AceEditor from "react-ace";
-
 import "ace-builds/src-noconflict/mode-java";
 import "ace-builds/src-noconflict/theme-github";
+
+import game from './assets/img/game.png';
 
 import {get} from 'http';
 
@@ -15,24 +16,114 @@ enum StoryChapters {
     TheBattle
 }
 
+//todo unde am ramas: add first challange
+
+enum ItemNodeType{
+    File,
+    Directory
+}
+
+class INState{
+    children?: Array<INState>
+    label: string
+    type: ItemNodeType
+    depth: number
+    collapsed:boolean
+    constructor(label: string, type:ItemNodeType, children?: Array<INState>, collapsed:boolean=false, depth: number=0){
+        this.label = label;
+        this.type = type;
+        this.depth = depth;
+        this.collapsed = collapsed;
+        this.children = children;
+    }
+}
+
+class ItemNode extends React.Component<INState, INState>{
+    constructor(props: INState){
+        super(props);
+        this.state = props;
+    }
+
+    toggle(){
+        let $ = this;
+        if ($.state.type == ItemNodeType.Directory){
+            this.setState((state, props)=>({
+                ...state, 
+                collapsed: !state.collapsed
+            }));
+        }
+    } 
+
+    render(){
+        let $ = this;
+        return (
+            <div>
+                {$.state.label != 'root' ? $.renderSelf(): null}
+                {$.state.collapsed? $.renderChildren():null}
+            </div>
+        );
+    }
+
+    renderSelf(){
+        let $ = this;
+        return (
+            <div style={{padding:'4px', paddingLeft:(8*$.state.depth).toString()+'px'}} >
+            <Button icon labelPosition='left' onClick={$.toggle.bind($)} color="green">
+                <Icon name={
+                    $.state.collapsed? 'caret down' : ($.state.type == ItemNodeType.File ? 'file': 'folder')} 
+                />
+                {$.state.label}
+            </Button>
+            </div>
+        );
+    }
+
+    renderChildren(){
+        let $ = this;
+        return (
+            $.state.children?.map(c => 
+                <ItemNode {...c} depth={$.state.label != 'root' ? $.state.depth+1: 0}/>
+            )
+        );
+    }
+}
+
 interface IProps {}
 
 interface IState {
     compilerOut?: string;
-    currentChapter: StoryChapters
+    currentChapter: StoryChapters,
+    files: Array<INState>
 }
 
-//todo unde am ramas: add first challange
-
 class App extends React.Component<IProps, IState> {
-    server_l = ''; // on server
-    //server_l = 'localhost';
+    //server_l = ''; // on server
+    server_l = 'localhost';
 
     constructor(props:any){
         super(props);
         this.state = {
             compilerOut: 'Type the code in the input area to compile it and CAST it.',
-            currentChapter: StoryChapters.Beginnings
+            currentChapter: StoryChapters.Beginnings,
+            files:[
+                new INState('test1', ItemNodeType.File),
+                new INState('test2', ItemNodeType.File),
+                new INState('test3', ItemNodeType.Directory,[
+                    new INState('wow', ItemNodeType.Directory, [
+                        new INState('test4', ItemNodeType.File),
+                        new INState('test5', ItemNodeType.File),
+                        new INState('test6', ItemNodeType.Directory,[
+                            new INState('wow2', ItemNodeType.Directory,[
+                                new INState('test7', ItemNodeType.File),
+                                new INState('test8', ItemNodeType.File),
+                                new INState('test9', ItemNodeType.Directory,[
+                                    new INState('wow3', ItemNodeType.Directory)
+                                ])
+                            ])
+                        ])
+                    ])
+                ])
+            ]
         }
     }
 
@@ -75,41 +166,74 @@ class App extends React.Component<IProps, IState> {
         );
     }
 
-    render() {
+    files(){
+        return new INState('root', ItemNodeType.Directory,this.state.files,true)
+    }
+
+    editor(){
         let $ = this;
-        
         return (
-            <div className="App">
-                <Container>
-                    <Segment style={{ padding: '8em 0em' }} vertical>
-                        <Grid container stackable verticalAlign='middle'>
-                            <Grid.Row>
-                                <Grid.Column width={8}>
-                                    <Header as='h3' style={{ fontSize: '2em' }}>
-                                        Spel - a programming game with with a fantasy setting
-                                </Header>
-                                    <p style={{ fontSize: '1.33em' }}>
-                                        todo description
-                                </p>
+            <Segment inverted style={{backgroundColor:"#036780"}}>
+                <Grid stackable verticalAlign='middle'>
+                    <Grid.Row>
+                        <Grid.Column width={3} floated='left' verticalAlign='top' style={{height:'100%', display:'flex',paddingRight:0}}>
+                            <Header as="h3" style={{color:'white'}} textAlign="center">Files</Header>
+                            <div style={{flexGrow:1,overflowX:'scroll',overflowY:'hidden'}}>
+                                <ItemNode {...$.files()}/>
+                            </div>
+                        </Grid.Column>
+                        <Grid.Column width={13} floated='right' verticalAlign='middle'>
+                            <Tab panes={[{
+                                menuItem: 'file',
+                                pane: (
                                     <AceEditor
                                         mode="java"
                                         theme="github"
                                         onChange={$.onCodeChange.bind($)}
                                         name="editorSpel"
                                         editorProps={{ $blockScrolling: true }}
+                                        width='auto'
+                                        wrapEnabled
                                     />
+                                )
+                            }]} renderActiveOnly={false} />
+                        </Grid.Column>
+                    </Grid.Row>
+                </Grid>
+            </Segment>
+        );
+    }
+
+    render() {
+        let $ = this;
+        
+        return (
+            <div className="App">
+                <Header 
+                    as='h1' 
+                    style={{ fontSize: '10em' }} 
+                    content="Spel" 
+                    subheader="A fantasy coding experience"
+                    textAlign="center"
+                />
+                <div style={{padding: '1em'}}>
+                    <Grid columns='equal' stackable verticalAlign='middle'>
+                        <Grid.Row>
+                                <Grid.Column verticalAlign='middle'>
+                                    {$.editor()}
+                                    <Segment inverted fluid>
+                                        <p>{$.state.compilerOut}</p>
+                                    </Segment>
                                 </Grid.Column>
-                                <Grid.Column floated='right' width={6} verticalAlign='middle'>
-                                    <Grid.Row>
-                                        <Segment inverted fluid>
-                                            <p>{$.state.compilerOut}</p>
-                                        </Segment>
-                                    </Grid.Row>
-                                    <Grid.Row>
-                                       
-                                    </Grid.Row>
+                                <Grid.Column floated='right' verticalAlign='middle'>
+                                    <Image src={game} fluid centered/>                                       
                                 </Grid.Column>
                             </Grid.Row>
+                    </Grid>
+                </div>
+                <Container>
+                    <Segment style={{ padding: '8em 0em' }} vertical>
+                        <Grid container columns='equal' stackable verticalAlign='middle'>
                             <Grid.Row>
                                 <Grid.Column>
                                     {$.beginnings()}
