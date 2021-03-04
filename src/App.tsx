@@ -7,9 +7,16 @@ import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-java";
 import "ace-builds/src-noconflict/theme-github";
 
-import game from './assets/img/game.png';
+import Unity, { UnityContext } from "react-unity-webgl";
 
 import {get} from 'http';
+
+const unityContext = new UnityContext({
+    loaderUrl: "Build/html.loader.js",
+    dataUrl: "Build/html.data",
+    frameworkUrl: "Build/html.framework.js",
+    codeUrl: "Build/html.wasm",
+});
 
 enum StoryChapters {
     Beginnings,
@@ -29,12 +36,14 @@ class INState{
     type: ItemNodeType
     depth: number
     collapsed:boolean
-    constructor(label: string, type:ItemNodeType, children?: Array<INState>, collapsed:boolean=false, depth: number=0){
+    icon: any
+    constructor(label: string, type:ItemNodeType, icon:any, children?: Array<INState>, collapsed:boolean=false, depth: number=0){
         this.label = label;
         this.type = type;
         this.depth = depth;
         this.collapsed = collapsed;
         this.children = children;
+        this.icon = icon;
     }
 }
 
@@ -69,8 +78,7 @@ class ItemNode extends React.Component<INState, INState>{
         return (
             <div style={{padding:'4px', paddingLeft:(8*$.state.depth).toString()+'px'}} >
             <Button icon labelPosition='left' onClick={$.toggle.bind($)} color="green">
-                <Icon name={
-                    $.state.collapsed? 'caret down' : ($.state.type == ItemNodeType.File ? 'file': 'folder')} 
+                <Icon name={$.state.collapsed? 'caret down' : ($.state.type == ItemNodeType.File ? $.state.icon : 'folder')} 
                 />
                 {$.state.label}
             </Button>
@@ -93,7 +101,8 @@ interface IProps {}
 interface IState {
     compilerOut?: string;
     currentChapter: StoryChapters,
-    files: Array<INState>
+    files: Array<INState>,
+    lastCompiledCode: any
 }
 
 class App extends React.Component<IProps, IState> {
@@ -102,29 +111,23 @@ class App extends React.Component<IProps, IState> {
 
     constructor(props:any){
         super(props);
+        let $ = this;
         this.state = {
             compilerOut: 'Type the code in the input area to compile it and CAST it.',
             currentChapter: StoryChapters.Beginnings,
             files:[
-                new INState('test1', ItemNodeType.File),
-                new INState('test2', ItemNodeType.File),
-                new INState('test3', ItemNodeType.Directory,[
-                    new INState('wow', ItemNodeType.Directory, [
-                        new INState('test4', ItemNodeType.File),
-                        new INState('test5', ItemNodeType.File),
-                        new INState('test6', ItemNodeType.Directory,[
-                            new INState('wow2', ItemNodeType.Directory,[
-                                new INState('test7', ItemNodeType.File),
-                                new INState('test8', ItemNodeType.File),
-                                new INState('test9', ItemNodeType.Directory,[
-                                    new INState('wow3', ItemNodeType.Directory)
-                                ])
-                            ])
-                        ])
-                    ])
+                new INState('Modify', ItemNodeType.File, 'sun'),
+                new INState('Previous', ItemNodeType.File, 'file'),
+                new INState('Items', ItemNodeType.Directory, '', [
+                    new INState('Potion', ItemNodeType.File, 'chess rock')
                 ])
-            ]
+            ],
+            lastCompiledCode: []
         }
+
+        unityContext.on("RequestAction", ()=>{
+            $.action();
+        });
     }
 
     onCodeChange(value: string, e: Event){
@@ -167,7 +170,7 @@ class App extends React.Component<IProps, IState> {
     }
 
     files(){
-        return new INState('root', ItemNodeType.Directory,this.state.files,true)
+        return new INState('root', ItemNodeType.Directory,'',this.state.files,true)
     }
 
     editor(){
@@ -177,7 +180,7 @@ class App extends React.Component<IProps, IState> {
                 <Grid stackable verticalAlign='middle'>
                     <Grid.Row>
                         <Grid.Column width={3} floated='left' verticalAlign='top' style={{height:'100%', display:'flex',paddingRight:0}}>
-                            <Header as="h3" style={{color:'white'}} textAlign="center">Files</Header>
+                            <Header as="h3" style={{color:'white'}} textAlign="center">Inventory</Header>
                             <div style={{flexGrow:1,overflowX:'scroll',overflowY:'hidden'}}>
                                 <ItemNode {...$.files()}/>
                             </div>
@@ -204,11 +207,19 @@ class App extends React.Component<IProps, IState> {
         );
     }
 
+    action(){
+        this.state.lastCompiledCode.forEach((skill: string) => {
+            unityContext.send("Player", "TriggerAction", skill);
+        });
+    }
+
     render() {
         let $ = this;
         
         return (
-            <div className="App">
+            <div className="App" style={{ 
+                backgroundImage: `url("https://external-preview.redd.it/a4VESb6Bk1hJBnH0riwFOgoKMlag6T9_QJCAJRtry4g.png?format=pjpg&auto=webp&s=08a89deb8ef4de3e65945e7d2ed6f760baabafb8")` 
+              }}>
                 <Header 
                     as='h1' 
                     style={{ fontSize: '10em' }} 
@@ -226,7 +237,7 @@ class App extends React.Component<IProps, IState> {
                                     </Segment>
                                 </Grid.Column>
                                 <Grid.Column floated='right' verticalAlign='middle'>
-                                    <Image src={game} fluid centered/>                                       
+                                    <Unity unityContext={unityContext} tabIndex={1}/>                            
                                 </Grid.Column>
                             </Grid.Row>
                     </Grid>
@@ -248,26 +259,37 @@ class App extends React.Component<IProps, IState> {
 
     requestCodeCompile(code: string){
         let $ = this;
-        get({
-            hostname: $.server_l,
-            path: '/api/compile?code=' + Buffer.from(code).toString('base64'),
-            //port: 80,
-            method: 'GET',
-            headers: {
+        // get({
+        //     hostname: $.server_l,
+        //     path: '/api/compile?code=' + Buffer.from(code).toString('base64'),
+        //     //port: 80,
+        //     method: 'GET',
+        //     headers: {
 
-            }
-        }, (res)=>{
-            var str = '';
-            res.on('data', function (chunk) {
-              str += chunk;
-            });
-            res.on('end', function () {
-                str = str.replace('\n', '<br>');
-              $.setState({
-                  ...$.state,
-                  compilerOut: str
-              });
-            });
+        //     }
+        // }, (res)=>{
+        //     var str = '';
+        //     res.on('data', function (chunk) {
+        //       str += chunk;
+        //     });
+        //     res.on('end', function () {
+        //         str = str.replace('\n', '<br>');
+        //       $.setState({
+        //           ...$.state,
+        //           compilerOut: str
+        //       });
+        //     });
+        // });
+        let commands = [];
+        for (let i=0; i < (code.match(/cast fire./) || []).length; i++){
+            commands.push("fire");
+        }
+        for (let i=0; i < (code.match(/cast water./) || []).length; i++){
+            commands.push("water");
+        }
+        this.setState({
+            ...$.state,
+            lastCompiledCode: commands
         });
     }
 }
