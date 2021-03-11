@@ -47,6 +47,14 @@ class INState{
     }
 }
 
+interface IProps {}
+
+interface IState {
+    compilerOut?: string;
+    currentChapter: StoryChapters,
+    lastCompiledCode: any
+}
+
 class ItemNode extends React.Component<INState, INState>{
     constructor(props: INState){
         super(props);
@@ -56,10 +64,13 @@ class ItemNode extends React.Component<INState, INState>{
     toggle(){
         let $ = this;
         if ($.state.type == ItemNodeType.Directory){
-            this.setState((state, props)=>({
+            this.setState((state)=>({
                 ...state, 
                 collapsed: !state.collapsed
             }));
+        }
+        else if ($.state.label == 'Modify'){
+
         }
     } 
 
@@ -78,8 +89,7 @@ class ItemNode extends React.Component<INState, INState>{
         return (
             <div style={{padding:'4px', paddingLeft:(8*$.state.depth).toString()+'px'}} >
             <Button icon labelPosition='left' onClick={$.toggle.bind($)} color="green">
-                <Icon name={$.state.collapsed? 'caret down' : ($.state.type == ItemNodeType.File ? $.state.icon : 'folder')} 
-                />
+                <Icon name={$.state.collapsed? 'caret down' : ($.state.type == ItemNodeType.File ? $.state.icon : 'folder')}/>
                 {$.state.label}
             </Button>
             </div>
@@ -96,13 +106,65 @@ class ItemNode extends React.Component<INState, INState>{
     }
 }
 
-interface IProps {}
+type onCodeChangeCb = (code: string, e: Event|undefined)=> void;
 
-interface IState {
-    compilerOut?: string;
-    currentChapter: StoryChapters,
-    files: Array<INState>,
-    lastCompiledCode: any
+interface EditorProps{
+    cb: onCodeChangeCb
+}
+
+class Editor extends React.Component<EditorProps, EditorProps>{
+    constructor(props: EditorProps){
+        super(props);
+        this.state = props;
+    }
+
+    render(){
+        let $ = this;
+        return (
+            <Segment inverted style={{backgroundColor:"#036780"}}>
+                <Grid stackable verticalAlign='middle'>
+                    <Grid.Row>
+                        <Grid.Column width={3} floated='left' verticalAlign='top' style={{height:'100%', display:'flex',paddingRight:0}}>
+                            <Header as="h3" style={{color:'white'}} textAlign="center">Inventory</Header>
+                            <div style={{flexGrow:1,overflowX:'scroll',overflowY:'hidden'}}>
+                                <ItemNode {...$.files()}/>
+                            </div>
+                        </Grid.Column>
+                        <Grid.Column width={13} floated='right' verticalAlign='middle'>
+                            <Tab panes={[{
+                                menuItem: 'file',
+                                pane: (
+                                    <AceEditor
+                                        mode="java"
+                                        theme="github"
+                                        onChange={$.onCodeChange.bind($)}
+                                        name="editorSpel"
+                                        editorProps={{ $blockScrolling: true }}
+                                        width='auto'
+                                        wrapEnabled
+                                    />
+                                )
+                            }]} renderActiveOnly={false} />
+                        </Grid.Column>
+                    </Grid.Row>
+                </Grid>
+            </Segment>
+        );
+    }
+
+    files(){
+        return new INState('root', ItemNodeType.Directory,'',[
+            new INState('Modify', ItemNodeType.File, 'sun'),
+            new INState('Previous', ItemNodeType.File, 'file'),
+            new INState('Items', ItemNodeType.Directory, '', [
+                new INState('Potion', ItemNodeType.File, 'chess rock')
+            ])
+        ],true);
+    }
+
+    onCodeChange(code: string){
+        this.state.cb(code, undefined);
+    }
 }
 
 class App extends React.Component<IProps, IState> {
@@ -114,15 +176,8 @@ class App extends React.Component<IProps, IState> {
         let $ = this;
         this.state = {
             compilerOut: 'Type the code in the input area to compile it and CAST it.',
+            lastCompiledCode: [],
             currentChapter: StoryChapters.Beginnings,
-            files:[
-                new INState('Modify', ItemNodeType.File, 'sun'),
-                new INState('Previous', ItemNodeType.File, 'file'),
-                new INState('Items', ItemNodeType.Directory, '', [
-                    new INState('Potion', ItemNodeType.File, 'chess rock')
-                ])
-            ],
-            lastCompiledCode: []
         }
 
         unityContext.on("RequestAction", ()=>{
@@ -130,7 +185,7 @@ class App extends React.Component<IProps, IState> {
         });
     }
 
-    onCodeChange(value: string, e: Event){
+    onCodeChange(value: string, e: Event|undefined){
         this.requestCodeCompile(value);
     }
 
@@ -170,47 +225,24 @@ class App extends React.Component<IProps, IState> {
     }
 
     files(){
-        return new INState('root', ItemNodeType.Directory,'',this.state.files,true)
+        return 
     }
 
-    editor(){
-        let $ = this;
-        return (
-            <Segment inverted style={{backgroundColor:"#036780"}}>
-                <Grid stackable verticalAlign='middle'>
-                    <Grid.Row>
-                        <Grid.Column width={3} floated='left' verticalAlign='top' style={{height:'100%', display:'flex',paddingRight:0}}>
-                            <Header as="h3" style={{color:'white'}} textAlign="center">Inventory</Header>
-                            <div style={{flexGrow:1,overflowX:'scroll',overflowY:'hidden'}}>
-                                <ItemNode {...$.files()}/>
-                            </div>
-                        </Grid.Column>
-                        <Grid.Column width={13} floated='right' verticalAlign='middle'>
-                            <Tab panes={[{
-                                menuItem: 'file',
-                                pane: (
-                                    <AceEditor
-                                        mode="java"
-                                        theme="github"
-                                        onChange={$.onCodeChange.bind($)}
-                                        name="editorSpel"
-                                        editorProps={{ $blockScrolling: true }}
-                                        width='auto'
-                                        wrapEnabled
-                                    />
-                                )
-                            }]} renderActiveOnly={false} />
-                        </Grid.Column>
-                    </Grid.Row>
-                </Grid>
-            </Segment>
-        );
-    }
-
-    action(){
-        this.state.lastCompiledCode.forEach((skill: string) => {
-            unityContext.send("Player", "TriggerAction", skill);
-        });
+    async action(){
+        let skippedFirst = false;
+        for(let cmd of this.state.lastCompiledCode) {
+            ["fire", "water", "earth"].forEach(el => {
+                if (cmd.startsWith(el)){
+                    unityContext.send("Player", "TriggerAction", el);
+                }
+            });
+            if (!skippedFirst){
+                skippedFirst = true;
+            }
+            else{
+                await new Promise(a => setTimeout(a, 500));
+            }
+        }
     }
 
     render() {
@@ -230,14 +262,14 @@ class App extends React.Component<IProps, IState> {
                 <div style={{padding: '1em'}}>
                     <Grid columns='equal' stackable verticalAlign='middle'>
                         <Grid.Row>
-                                <Grid.Column verticalAlign='middle'>
-                                    {$.editor()}
+                                <Grid.Column verticalAlign='middle' width={6}>
+                                    <Editor cb={$.onCodeChange.bind($)}/>
                                     <Segment inverted fluid>
                                         <p>{$.state.compilerOut}</p>
                                     </Segment>
                                 </Grid.Column>
-                                <Grid.Column floated='right' verticalAlign='middle'>
-                                    <Unity unityContext={unityContext} tabIndex={1}/>                            
+                                <Grid.Column floated='right' width={10} verticalAlign='middle'>
+                                    <Unity unityContext={unityContext} tabIndex={1} width="1000px"/>                            
                                 </Grid.Column>
                             </Grid.Row>
                     </Grid>
@@ -257,7 +289,7 @@ class App extends React.Component<IProps, IState> {
         );
     }
 
-    requestCodeCompile(code: string){
+    requestCodeCompile(code: string) {
         let $ = this;
         // get({
         //     hostname: $.server_l,
@@ -280,16 +312,10 @@ class App extends React.Component<IProps, IState> {
         //       });
         //     });
         // });
-        let commands = [];
-        for (let i=0; i < (code.match(/cast fire./) || []).length; i++){
-            commands.push("fire");
-        }
-        for (let i=0; i < (code.match(/cast water./) || []).length; i++){
-            commands.push("water");
-        }
+        let parts = code.split('cast ');
         this.setState({
             ...$.state,
-            lastCompiledCode: commands
+            lastCompiledCode: parts
         });
     }
 }
