@@ -3,11 +3,11 @@ import './App.css';
 
 import { Container, Grid, Header, Message, Segment, Image, Tab, Button, Icon, TextArea } from 'semantic-ui-react';
 
-import AceEditor from "react-ace";
+import AceEditor from 'react-ace';
 import "ace-builds/src-noconflict/mode-java";
 import "ace-builds/src-noconflict/theme-github";
 
-import Unity, { UnityContext } from "react-unity-webgl";
+import Unity, { UnityContext } from 'react-unity-webgl';
 
 import {get} from 'http';
 
@@ -269,7 +269,7 @@ class App extends React.Component<IProps, IState> {
                                     </Segment>
                                 </Grid.Column>
                                 <Grid.Column floated='right' width={10} verticalAlign='middle'>
-                                    <Unity unityContext={unityContext} tabIndex={1} width="1000px"/>                            
+                                    <Unity unityContext={unityContext} tabIndex={1} style={{width:"100%", height:"100%"}}/>                            
                                 </Grid.Column>
                             </Grid.Row>
                     </Grid>
