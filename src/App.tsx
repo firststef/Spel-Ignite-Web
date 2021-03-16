@@ -1,7 +1,7 @@
 import React, { CSSProperties, useState } from 'react';
 import './App.css';
 
-import { Container, Grid, Header, Message, Segment, Image, Tab, Button, Icon, TextArea } from 'semantic-ui-react';
+import { Container, Grid, Header, Message, Segment, Image, Tab, Button, Icon, TextArea, Sidebar } from 'semantic-ui-react';
 
 import AceEditor from 'react-ace';
 import "ace-builds/src-noconflict/mode-java";
@@ -9,7 +9,10 @@ import "ace-builds/src-noconflict/theme-github";
 
 import Unity, { UnityContext } from 'react-unity-webgl';
 
-import {get} from 'http';
+import Blockly from 'blockly';
+import ReactBlockly from 'react-blockly';
+
+const INITIAL_XML = '<xml xmlns="http://www.w3.org/1999/xhtml"><block type="text" x="70" y="30"><field name="TEXT"></field></block></xml>';
 
 const unityContext = new UnityContext({
     loaderUrl: "Build/html.loader.js",
@@ -45,14 +48,6 @@ class INState{
         this.children = children;
         this.icon = icon;
     }
-}
-
-interface IProps {}
-
-interface IState {
-    compilerOut?: string;
-    currentChapter: StoryChapters,
-    lastCompiledCode: any
 }
 
 class ItemNode extends React.Component<INState, INState>{
@@ -112,10 +107,77 @@ interface EditorProps{
     cb: onCodeChangeCb
 }
 
-class Editor extends React.Component<EditorProps, EditorProps>{
+interface EditorState{
+    cb: onCodeChangeCb,
+    activePane: number
+}
+
+const toolboxCategories = [
+    {
+      name: 'Logic',
+      colour: '#5C81A6',
+      blocks: [
+        {
+          type: 'controls_if'
+        },
+        {
+          type: 'logic_compare'
+        }
+      ]
+    },
+    {
+      name: 'Math',
+      colour: '#5CA65C',
+      blocks: [
+        {
+          type: 'math_round'
+        },
+        {
+          type: 'math_number'
+        }
+      ]
+    },
+    {
+      name: 'Custom',
+      colour: '#5CA699',
+      blocks: [
+        {
+          type: 'new_boundary_function'
+        },
+        {
+          type: 'return'
+        },
+      ]
+    }
+  ]
+
+class Editor extends React.Component<EditorProps, EditorState>{
     constructor(props: EditorProps){
         super(props);
-        this.state = props;
+        this.state = {
+            ...props,
+            activePane: 0
+        };
+    }
+
+    workspaceDidChange (workspace: any) {
+        // workspace.registerButtonCallback('myFirstButtonPressed', () => {
+        //   alert('button is pressed');
+        // });
+
+        const newXml = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace));
+        //document.getElementById('generated-xml').innerText = newXml;
+        
+        const g = new Blockly.Generator("java");
+        //const code = g.workspaceToCode(workspace);
+        //document.getElementById('code').value = code;
+    }
+
+    flipActive(){
+        this.setState({
+            ...this.state,
+            activePane: this.state.activePane == 0 ? 1 : 0
+        });
     }
 
     render(){
@@ -131,9 +193,10 @@ class Editor extends React.Component<EditorProps, EditorProps>{
                             </div>
                         </Grid.Column>
                         <Grid.Column width={13} floated='right' verticalAlign='middle'>
-                            <Tab panes={[{
-                                menuItem: 'file',
-                                pane: (
+                            <Tab panes={[
+                                {
+                                    menuItem: 'script',
+                                    pane: this.state.activePane == 0 && (
                                     <AceEditor
                                         mode="java"
                                         theme="github"
@@ -142,9 +205,31 @@ class Editor extends React.Component<EditorProps, EditorProps>{
                                         editorProps={{ $blockScrolling: true }}
                                         width='auto'
                                         wrapEnabled
+                                        key={0}
                                     />
-                                )
-                            }]} renderActiveOnly={false} />
+                                )},
+                                {
+                                    menuItem: 'tablets',
+                                    pane: this.state.activePane == 1 && (
+                                    <ReactBlockly
+                                    style={{overflow:'hidden'}}
+                                    toolboxCategories={toolboxCategories}
+                                    workspaceConfiguration={{
+                                        grid: {
+                                        colour: '#ccc',
+                                        },
+                                    }}
+                                    initialXml={INITIAL_XML}
+                                    wrapperDivClassName="fill-height"
+                                    workspaceDidChange={$.workspaceDidChange}
+                                    key={1}
+                                    />
+                                )}
+                            ]} 
+                            renderActiveOnly={false}
+                            onTabChange={$.flipActive.bind($)}
+                            activeIndex={$.state.activePane}
+                            />
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
@@ -167,6 +252,15 @@ class Editor extends React.Component<EditorProps, EditorProps>{
     }
 }
 
+interface IProps {}
+
+interface IState {
+    compilerOut?: string;
+    currentChapter: StoryChapters,
+    lastCompiledCode: any,
+    showEditor: boolean
+}
+
 class App extends React.Component<IProps, IState> {
     //server_l = ''; // on server
     server_l = 'localhost';
@@ -178,10 +272,19 @@ class App extends React.Component<IProps, IState> {
             compilerOut: 'Type the code in the input area to compile it and CAST it.',
             lastCompiledCode: [],
             currentChapter: StoryChapters.Beginnings,
+            showEditor: false
         }
 
         unityContext.on("RequestAction", ()=>{
             $.action();
+        });
+        unityContext.on("GamePaused", ()=>{
+            if (!$.state.showEditor){
+                $.setState({
+                    ...$.state,
+                    showEditor: true
+                })
+            }
         });
     }
 
@@ -224,10 +327,6 @@ class App extends React.Component<IProps, IState> {
         );
     }
 
-    files(){
-        return 
-    }
-
     async action(){
         let skippedFirst = false;
         for(let cmd of this.state.lastCompiledCode) {
@@ -260,19 +359,29 @@ class App extends React.Component<IProps, IState> {
                     textAlign="center"
                 />
                 <div style={{padding: '1em'}}>
-                    <Grid columns='equal' stackable verticalAlign='middle'>
-                        <Grid.Row>
-                                <Grid.Column verticalAlign='middle' width={6}>
-                                    <Editor cb={$.onCodeChange.bind($)}/>
-                                    <Segment inverted fluid>
-                                        <p>{$.state.compilerOut}</p>
-                                    </Segment>
-                                </Grid.Column>
-                                <Grid.Column floated='right' width={10} verticalAlign='middle'>
-                                    <Unity unityContext={unityContext} tabIndex={1} style={{width:"100%", height:"100%"}}/>                            
-                                </Grid.Column>
-                            </Grid.Row>
-                    </Grid>
+                    <Sidebar.Pushable as={Segment} style={{overflow:"hidden"}}>
+                        <Sidebar
+                            animation='overlay'
+                            icon='labeled'
+                            onHide={() => { 
+                                (document.getElementsByClassName("game-canvas").item(0) as HTMLElement)?.focus(); 
+                                //unityContext.send("GameManager", "TogglePaused");
+                                $.setState({...$.state, showEditor: !$.state.showEditor});
+                            }}
+                            visible={$.state.showEditor}
+                            width={"very wide"}
+                            style={{padding: '1em', width:"50%", height:"100%"}}
+                        >
+                            <Editor cb={$.onCodeChange.bind($)}/>
+                            <Segment inverted fluid>
+                                <p>{$.state.compilerOut}</p>
+                            </Segment>
+                        </Sidebar>
+
+                        <Sidebar.Pusher dimmed={$.state.showEditor}>
+                            <Unity unityContext={unityContext} tabIndex={1} style={{width:"100%", height:"100%"}} className={"game-canvas"}/>                            
+                        </Sidebar.Pusher>
+                    </Sidebar.Pushable>
                 </div>
                 <Container>
                     <Segment style={{ padding: '8em 0em' }} vertical>

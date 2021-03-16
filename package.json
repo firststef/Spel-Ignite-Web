@@ -16,6 +16,7 @@
     "electron-squirrel-startup": "^1.0.0",
     "react": "^17.0.1",
     "react-ace": "^9.2.1",
+    "react-blockly": "^6.0.1",
     "react-dom": "latest",
     "react-unity-webgl": "^8.2.4",
     "semantic-ui-react": "^2.0.3"
