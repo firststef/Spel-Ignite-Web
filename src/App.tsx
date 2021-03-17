@@ -94,8 +94,8 @@ class ItemNode extends React.Component<INState, INState>{
     renderChildren(){
         let $ = this;
         return (
-            $.state.children?.map(c => 
-                <ItemNode {...c} depth={$.state.label != 'root' ? $.state.depth+1: 0}/>
+            $.state.children?.map((c, i) => 
+                <ItemNode {...c} depth={$.state.label != 'root' ? $.state.depth+1: 0} key={i}/>
             )
         );
     }
@@ -206,6 +206,7 @@ class Editor extends React.Component<EditorProps, EditorState>{
                                         width='auto'
                                         wrapEnabled
                                         key={0}
+                                        placeholder='Write code for your spell here'
                                     />
                                 )},
                                 {
@@ -279,12 +280,16 @@ class App extends React.Component<IProps, IState> {
             $.action();
         });
         unityContext.on("GamePaused", ()=>{
-            if (!$.state.showEditor){
-                $.setState({
-                    ...$.state,
-                    showEditor: true
-                })
-            }
+            $.setState({
+                ...$.state,
+                showEditor: true
+            });
+        });
+        unityContext.on("GameUnpaused", ()=>{
+            $.setState({
+                ...$.state,
+                showEditor: false
+            });
         });
     }
 
@@ -344,6 +349,10 @@ class App extends React.Component<IProps, IState> {
         }
     }
 
+    componentDidMount(){
+        (document.getElementsByClassName("game-canvas").item(0) as HTMLElement)?.focus();
+    }
+
     render() {
         let $ = this;
         
@@ -365,8 +374,7 @@ class App extends React.Component<IProps, IState> {
                             icon='labeled'
                             onHide={() => { 
                                 (document.getElementsByClassName("game-canvas").item(0) as HTMLElement)?.focus(); 
-                                //unityContext.send("GameManager", "TogglePaused");
-                                $.setState({...$.state, showEditor: !$.state.showEditor});
+                                unityContext.send("GameManager", "PlayFromEditor");
                             }}
                             visible={$.state.showEditor}
                             width={"very wide"}
@@ -378,8 +386,8 @@ class App extends React.Component<IProps, IState> {
                             </Segment>
                         </Sidebar>
 
-                        <Sidebar.Pusher dimmed={$.state.showEditor}>
-                            <Unity unityContext={unityContext} tabIndex={1} style={{width:"100%", height:"100%"}} className={"game-canvas"}/>                            
+                        <Sidebar.Pusher dimmed={$.state.showEditor} as="div">
+                            <Unity unityContext={unityContext} tabIndex={1} style={{width:"100%", height:"95vh", background:"transparent"}} className={"game-canvas"}/>                            
                         </Sidebar.Pusher>
                     </Sidebar.Pushable>
                 </div>
