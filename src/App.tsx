@@ -33,14 +33,14 @@ enum ItemNodeType{
     Directory
 }
 
-class INState{
-    children?: Array<INState>
+class INProps{
+    children?: Array<INProps>
     label: string
     type: ItemNodeType
     depth: number
     collapsed:boolean
     icon: any
-    constructor(label: string, type:ItemNodeType, icon:any, children?: Array<INState>, collapsed:boolean=false, depth: number=0){
+    constructor(label: string, type:ItemNodeType, icon:any, children?: Array<INProps>, collapsed:boolean=false, depth: number=0){
         this.label = label;
         this.type = type;
         this.depth = depth;
@@ -50,21 +50,27 @@ class INState{
     }
 }
 
-class ItemNode extends React.Component<INState, INState>{
-    constructor(props: INState){
+interface INState{
+    collapsed: boolean;
+}
+
+class ItemNode extends React.Component<INProps, INState>{
+    constructor(props: INProps){
         super(props);
-        this.state = props;
+        this.state = {
+            collapsed: props.collapsed
+        };
     }
 
     toggle(){
         let $ = this;
-        if ($.state.type == ItemNodeType.Directory){
+        if ($.props.type == ItemNodeType.Directory){
             this.setState((state)=>({
                 ...state, 
                 collapsed: !state.collapsed
             }));
         }
-        else if ($.state.label == 'Modify'){
+        else if ($.props.label == 'Modify'){
 
         }
     } 
@@ -73,7 +79,7 @@ class ItemNode extends React.Component<INState, INState>{
         let $ = this;
         return (
             <div>
-                {$.state.label != 'root' ? $.renderSelf(): null}
+                {$.props.label != 'root' ? $.renderSelf(): null}
                 {$.state.collapsed? $.renderChildren():null}
             </div>
         );
@@ -82,10 +88,10 @@ class ItemNode extends React.Component<INState, INState>{
     renderSelf(){
         let $ = this;
         return (
-            <div style={{padding:'4px', paddingLeft:(8*$.state.depth).toString()+'px'}} >
+            <div style={{padding:'4px', paddingLeft:(8*$.props.depth).toString()+'px'}} >
             <Button icon labelPosition='left' onClick={$.toggle.bind($)} color="green">
-                <Icon name={$.state.collapsed? 'caret down' : ($.state.type == ItemNodeType.File ? $.state.icon : 'folder')}/>
-                {$.state.label}
+                <Icon name={$.state.collapsed? 'caret down' : ($.props.type == ItemNodeType.File ? $.props.icon : 'folder')}/>
+                {$.props.label}
             </Button>
             </div>
         );
@@ -94,8 +100,8 @@ class ItemNode extends React.Component<INState, INState>{
     renderChildren(){
         let $ = this;
         return (
-            $.state.children?.map((c, i) => 
-                <ItemNode {...c} depth={$.state.label != 'root' ? $.state.depth+1: 0} key={i}/>
+            $.props.children?.map((c, i) => 
+                <ItemNode {...c} depth={$.props.label != 'root' ? $.props.depth+1: 0} key={i}/>
             )
         );
     }
@@ -239,11 +245,11 @@ class Editor extends React.Component<EditorProps, EditorState>{
     }
 
     files(){
-        return new INState('root', ItemNodeType.Directory,'',[
-            new INState('Modify', ItemNodeType.File, 'sun'),
-            new INState('Previous', ItemNodeType.File, 'file'),
-            new INState('Items', ItemNodeType.Directory, '', [
-                new INState('Potion', ItemNodeType.File, 'chess rock')
+        return new INProps('root', ItemNodeType.Directory,'',[
+            new INProps('Modify', ItemNodeType.File, 'sun'),
+            new INProps('Previous', ItemNodeType.File, 'file'),
+            new INProps('Items', ItemNodeType.Directory, '', [
+                new INProps('Potion', ItemNodeType.File, 'chess rock')
             ])
         ],true);
     }
