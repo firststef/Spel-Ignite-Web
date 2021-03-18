@@ -11,8 +11,9 @@ import Unity, { UnityContext } from 'react-unity-webgl';
 
 import Blockly from 'blockly';
 import ReactBlockly from 'react-blockly';
+import BlocklyJavaScript from 'blockly/javascript';
 
-const INITIAL_XML = '<xml xmlns="http://www.w3.org/1999/xhtml"><block type="text" x="70" y="30"><field name="TEXT"></field></block></xml>';
+const INITIAL_XML = '<xml xmlns="http://www.w3.org/1999/xhtml"><block id="1" type="text" x="70" y="30"><field name="TEXT"></field></block></xml>';
 
 const unityContext = new UnityContext({
     loaderUrl: "Build/html.loader.js",
@@ -115,7 +116,9 @@ interface EditorProps{
 
 interface EditorState{
     cb: onCodeChangeCb,
-    activePane: number
+    activePane: number,
+    compilerOut: string,
+    xmlCode: string
 }
 
 const toolboxCategories = [
@@ -136,23 +139,32 @@ const toolboxCategories = [
       colour: '#5CA65C',
       blocks: [
         {
-          type: 'math_round'
-        },
-        {
           type: 'math_number'
         }
       ]
     },
     {
-      name: 'Custom',
+      name: 'Magic',
       colour: '#5CA699',
       blocks: [
         {
-          type: 'new_boundary_function'
+            "type": "cast",
+            "message0": "cast %1",
+            "args0": [
+              {
+                "type": "input_value",
+                "name": "skill",
+                "check": "String"
+              }
+            ],
+            "inputsInline": true,
+            "colour": 230,
+            "tooltip": "",
+            "helpUrl": ""
         },
         {
-          type: 'return'
-        },
+            "type": "text"
+        }
       ]
     }
   ]
@@ -162,21 +174,63 @@ class Editor extends React.Component<EditorProps, EditorState>{
         super(props);
         this.state = {
             ...props,
-            activePane: 0
+            activePane: 0,
+            compilerOut: 'Type the code in the input area to compile it and CAST it.',
+            xmlCode: INITIAL_XML
         };
     }
 
     workspaceDidChange (workspace: any) {
-        // workspace.registerButtonCallback('myFirstButtonPressed', () => {
-        //   alert('button is pressed');
-        // });
-
         const newXml = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace));
-        //document.getElementById('generated-xml').innerText = newXml;
+        //Blockly.inject("1", {theme:{base:"deuteranopia"}})
         
-        const g = new Blockly.Generator("java");
-        //const code = g.workspaceToCode(workspace);
-        //document.getElementById('code').value = code;
+        // Blockly.Blocks['new_boundary_function'] = {
+        //     init: function () {
+        //         (this as any).appendDummyInput()
+        //             .appendField(new Blockly.FieldTextInput("Boundary Function Name"), "Name");
+        //         (this as any).appendStatementInput("Content")
+        //             .setCheck(null);
+        //         (this as any).setInputsInline(true);
+        //         (this as any).setColour(315);
+        //         (this as any).setTooltip("");
+        //         (this as any).setHelpUrl("");
+        //     }
+        // };
+        
+        // (BlocklyPython as any)['new_boundary_function'] = function (block: any) {
+        //     var text_name = block.getFieldValue('Name');
+        //     var statements_content = (BlocklyPython as any).statementToCode(block, 'Content');
+        //     // TODO: Assemble Python into code variable.
+        //     var code = 'def ' + text_name + '(_object,**kwargs):\n' + statements_content + '\n';
+        //     return code;
+        // };
+        
+        Blockly.Blocks['cast'] = {
+            init: function () {
+                (this as any).appendValueInput("NAME")
+                    .setCheck(null)
+                    .appendField("cast");
+                (this as any).setInputsInline(false);
+                (this as any).setPreviousStatement(true, null);
+                (this as any).setColour(330);
+                (this as any).setTooltip("");
+                (this as any).setHelpUrl("");
+            }
+        };
+        
+        (BlocklyJavaScript as any)['cast'] = function (block: any) {
+            var value_name = (BlocklyJavaScript as any).valueToCode(block, 'NAME', (BlocklyJavaScript as any).ORDER_ATOMIC);
+            var code = 'cast ' + (value_name as string).replaceAll("'", "") + '.\n';
+            return code;
+        };
+
+        const code = (BlocklyJavaScript as any).workspaceToCode(workspace);
+        this.state.cb(code, undefined);
+        this.setState({
+            ...this.state,
+            compilerOut: code,
+            xmlCode: newXml
+        });
     }
 
     flipActive(){
@@ -189,6 +243,7 @@ class Editor extends React.Component<EditorProps, EditorState>{
     render(){
         let $ = this;
         return (
+            <>
             <Segment inverted style={{backgroundColor:"#036780"}}>
                 <Grid stackable verticalAlign='middle'>
                     <Grid.Row>
@@ -226,9 +281,9 @@ class Editor extends React.Component<EditorProps, EditorState>{
                                         colour: '#ccc',
                                         },
                                     }}
-                                    initialXml={INITIAL_XML}
+                                    initialXml={$.state.xmlCode}
                                     wrapperDivClassName="fill-height"
-                                    workspaceDidChange={$.workspaceDidChange}
+                                    workspaceDidChange={$.workspaceDidChange.bind($)}
                                     key={1}
                                     />
                                 )}
@@ -241,6 +296,10 @@ class Editor extends React.Component<EditorProps, EditorState>{
                     </Grid.Row>
                 </Grid>
             </Segment>
+            <Segment inverted fluid="true">
+                <pre>{$.state.compilerOut}</pre>
+            </Segment>
+            </>
         );
     }
 
@@ -262,7 +321,6 @@ class Editor extends React.Component<EditorProps, EditorState>{
 interface IProps {}
 
 interface IState {
-    compilerOut?: string;
     currentChapter: StoryChapters,
     lastCompiledCode: any,
     showEditor: boolean
@@ -276,13 +334,13 @@ class App extends React.Component<IProps, IState> {
         super(props);
         let $ = this;
         this.state = {
-            compilerOut: 'Type the code in the input area to compile it and CAST it.',
             lastCompiledCode: [],
             currentChapter: StoryChapters.Beginnings,
             showEditor: false
         }
 
-        unityContext.on("RequestAction", ()=>{
+        unityContext.on("RequestAction", (str)=>{
+            console.log(str);
             $.action();
         });
         unityContext.on("GamePaused", ()=>{
@@ -387,9 +445,6 @@ class App extends React.Component<IProps, IState> {
                             style={{padding: '1em', width:"50%", height:"100%"}}
                         >
                             <Editor cb={$.onCodeChange.bind($)}/>
-                            <Segment inverted fluid>
-                                <p>{$.state.compilerOut}</p>
-                            </Segment>
                         </Sidebar>
 
                         <Sidebar.Pusher dimmed={$.state.showEditor} as="div">
