@@ -1,19 +1,16 @@
 import React, { CSSProperties, useState } from 'react';
 import './App.css';
 
-import { Container, Grid, Header, Message, Segment, Image, Tab, Button, Icon, TextArea, Sidebar } from 'semantic-ui-react';
+import { Container, Grid, Header, Message, Segment, Tab, Button, Icon, Sidebar } from 'semantic-ui-react';
 
-import AceEditor from 'react-ace';
-import "ace-builds/src-noconflict/mode-java";
-import "ace-builds/src-noconflict/theme-github";
+// import AceEditor from 'react-ace';
+// import "ace-builds/src-noconflict/mode-java";
+// import "ace-builds/src-noconflict/theme-github";
 
 import Unity, { UnityContext } from 'react-unity-webgl';
 
-import Blockly from 'blockly';
 import ReactBlockly from 'react-blockly';
-import BlocklyJavaScript from 'blockly/javascript';
-
-const INITIAL_XML = '<xml xmlns="http://www.w3.org/1999/xhtml"><block id="1" type="text" x="70" y="30"><field name="TEXT"></field></block></xml>';
+import {Blockly, BlocklyJavaScript, INITIAL_XML, BLOCKS_DICTIONARY} from './BlocklyConfig';
 
 const unityContext = new UnityContext({
     loaderUrl: "Build/html.loader.js",
@@ -111,63 +108,19 @@ class ItemNode extends React.Component<INProps, INState>{
 type onCodeChangeCb = (code: string, e: Event|undefined)=> void;
 
 interface EditorProps{
-    cb: onCodeChangeCb
+    cb: onCodeChangeCb,
+    inventory: Array<object>
 }
 
-interface EditorState{
-    cb: onCodeChangeCb,
+interface EditorState extends EditorProps {
     activePane: number,
     compilerOut: string,
-    xmlCode: string
+    xmlCode: string,
 }
 
-const toolboxCategories = [
-    {
-      name: 'Logic',
-      colour: '#5C81A6',
-      blocks: [
-        {
-          type: 'controls_if'
-        },
-        {
-          type: 'logic_compare'
-        }
-      ]
-    },
-    {
-      name: 'Math',
-      colour: '#5CA65C',
-      blocks: [
-        {
-          type: 'math_number'
-        }
-      ]
-    },
-    {
-      name: 'Magic',
-      colour: '#5CA699',
-      blocks: [
-        {
-            "type": "cast",
-            "message0": "cast %1",
-            "args0": [
-              {
-                "type": "input_value",
-                "name": "skill",
-                "check": "String"
-              }
-            ],
-            "inputsInline": true,
-            "colour": 230,
-            "tooltip": "",
-            "helpUrl": ""
-        },
-        {
-            "type": "text"
-        }
-      ]
-    }
-  ]
+function inventoryToBlocks(inv: Array<string>) : Array<object>{
+    return inv.map(el => BLOCKS_DICTIONARY[el]);
+}
 
 class Editor extends React.Component<EditorProps, EditorState>{
     constructor(props: EditorProps){
@@ -176,53 +129,17 @@ class Editor extends React.Component<EditorProps, EditorState>{
             ...props,
             activePane: 0,
             compilerOut: 'Type the code in the input area to compile it and CAST it.',
-            xmlCode: INITIAL_XML
+            xmlCode: INITIAL_XML,
         };
+    }
+
+    componentWillReceiveProps(props: EditorProps){
+        let $ = this;
+        this.setState({...$.state, inventory: props.inventory});
     }
 
     workspaceDidChange (workspace: any) {
         const newXml = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace));
-        //Blockly.inject("1", {theme:{base:"deuteranopia"}})
-        
-        // Blockly.Blocks['new_boundary_function'] = {
-        //     init: function () {
-        //         (this as any).appendDummyInput()
-        //             .appendField(new Blockly.FieldTextInput("Boundary Function Name"), "Name");
-        //         (this as any).appendStatementInput("Content")
-        //             .setCheck(null);
-        //         (this as any).setInputsInline(true);
-        //         (this as any).setColour(315);
-        //         (this as any).setTooltip("");
-        //         (this as any).setHelpUrl("");
-        //     }
-        // };
-        
-        // (BlocklyPython as any)['new_boundary_function'] = function (block: any) {
-        //     var text_name = block.getFieldValue('Name');
-        //     var statements_content = (BlocklyPython as any).statementToCode(block, 'Content');
-        //     // TODO: Assemble Python into code variable.
-        //     var code = 'def ' + text_name + '(_object,**kwargs):\n' + statements_content + '\n';
-        //     return code;
-        // };
-        
-        Blockly.Blocks['cast'] = {
-            init: function () {
-                (this as any).appendValueInput("NAME")
-                    .setCheck(null)
-                    .appendField("cast");
-                (this as any).setInputsInline(false);
-                (this as any).setPreviousStatement(true, null);
-                (this as any).setColour(330);
-                (this as any).setTooltip("");
-                (this as any).setHelpUrl("");
-            }
-        };
-        
-        (BlocklyJavaScript as any)['cast'] = function (block: any) {
-            var value_name = (BlocklyJavaScript as any).valueToCode(block, 'NAME', (BlocklyJavaScript as any).ORDER_ATOMIC);
-            var code = 'cast ' + (value_name as string).replaceAll("'", "") + '.\n';
-            return code;
-        };
 
         const code = (BlocklyJavaScript as any).workspaceToCode(workspace);
         this.state.cb(code, undefined);
@@ -255,27 +172,27 @@ class Editor extends React.Component<EditorProps, EditorState>{
                         </Grid.Column>
                         <Grid.Column width={13} floated='right' verticalAlign='middle'>
                             <Tab panes={[
-                                {
-                                    menuItem: 'script',
-                                    pane: this.state.activePane == 0 && (
-                                    <AceEditor
-                                        mode="java"
-                                        theme="github"
-                                        onChange={$.onCodeChange.bind($)}
-                                        name="editorSpel"
-                                        editorProps={{ $blockScrolling: true }}
-                                        width='auto'
-                                        wrapEnabled
-                                        key={0}
-                                        placeholder='Write code for your spell here'
-                                    />
-                                )},
+                                // {
+                                //     menuItem: 'script',
+                                //     pane: this.state.activePane == 0 && (
+                                //     <AceEditor
+                                //         mode="java"
+                                //         theme="github"
+                                //         onChange={$.onCodeChange.bind($)}
+                                //         name="editorSpel"
+                                //         editorProps={{ $blockScrolling: true }}
+                                //         width='auto'
+                                //         wrapEnabled
+                                //         key={0}
+                                //         placeholder='Write code for your spell here'
+                                //     />
+                                // )},
                                 {
                                     menuItem: 'tablets',
-                                    pane: this.state.activePane == 1 && (
+                                    pane: (
                                     <ReactBlockly
                                     style={{overflow:'hidden'}}
-                                    toolboxCategories={toolboxCategories}
+                                    toolboxBlocks={$.state.inventory}
                                     workspaceConfiguration={{
                                         grid: {
                                         colour: '#ccc',
@@ -323,7 +240,8 @@ interface IProps {}
 interface IState {
     currentChapter: StoryChapters,
     lastCompiledCode: any,
-    showEditor: boolean
+    showEditor: boolean,
+    inventory: Array<object>
 }
 
 class App extends React.Component<IProps, IState> {
@@ -336,11 +254,11 @@ class App extends React.Component<IProps, IState> {
         this.state = {
             lastCompiledCode: [],
             currentChapter: StoryChapters.Beginnings,
-            showEditor: false
+            showEditor: false,
+            inventory: inventoryToBlocks(['cast'])
         }
 
-        unityContext.on("RequestAction", (str)=>{
-            console.log(str);
+        unityContext.on("RequestAction", ()=>{
             $.action();
         });
         unityContext.on("GamePaused", ()=>{
@@ -353,6 +271,12 @@ class App extends React.Component<IProps, IState> {
             $.setState({
                 ...$.state,
                 showEditor: false
+            });
+        });
+        unityContext.on("UpdateInventory", (str)=>{
+            $.setState({
+                ...$.state,
+                inventory: inventoryToBlocks((JSON.parse(str) as any)['inventory'])
             });
         });
     }
@@ -444,7 +368,7 @@ class App extends React.Component<IProps, IState> {
                             width={"very wide"}
                             style={{padding: '1em', width:"50%", height:"100%"}}
                         >
-                            <Editor cb={$.onCodeChange.bind($)}/>
+                            <Editor cb={$.onCodeChange.bind($)} inventory={$.state.inventory}/>
                         </Sidebar>
 
                         <Sidebar.Pusher dimmed={$.state.showEditor} as="div">
