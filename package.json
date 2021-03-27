@@ -37,7 +37,7 @@
     "react-scripts": "4.0.1"
   },
   "scripts": {
-    "start": "cd build && python -m http.server 3000",
+    "start": "cd build && python -m http.server $PORT",
     "watch": "react-scripts start",
     "run": "electron-forge start --asar",
     "build": "react-scripts build",
