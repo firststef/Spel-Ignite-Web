@@ -10,7 +10,7 @@ import { Container, Grid, Header, Message, Segment, Tab, Button, Icon, Sidebar }
 import Unity, { UnityContext } from 'react-unity-webgl';
 
 import ReactBlockly from 'react-blockly';
-import {Blockly, BlocklyJavaScript, INITIAL_XML, BLOCKS_DICTIONARY} from './BlocklyConfig';
+import {generateSpel, INITIAL_XML, BLOCKS_DICTIONARY} from './language/BlocklySpel';
 
 const unityContext = new UnityContext({
     loaderUrl: "Build/html.loader.js",
@@ -139,9 +139,7 @@ class Editor extends React.Component<EditorProps, EditorState>{
     }
 
     workspaceDidChange (workspace: any) {
-        const newXml = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace));
-
-        const code = (BlocklyJavaScript as any).workspaceToCode(workspace);
+        const [code, newXml] = generateSpel(workspace);
         this.state.cb(code, undefined);
         this.setState({
             ...this.state,
