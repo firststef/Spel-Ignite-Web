@@ -25,18 +25,19 @@ function inventoryToBlocks(inv: Array<string>) : Array<object>{
 }
 
 const App = () => {
-    const [lastCompiledCode, setLastCompiledCode] = useState([] as string[]);
+    const [generatedInstructions, setGeneratedInstructions] = useState('');
     const [showEditor, setshowEditor] = useState(false);
     const [inventory, setInventory] = useState(inventoryToBlocks(['cast']) as object[]);
     const canvasRef = useRef<Editor|null>(null);
     
-    const onCodeChange = (value: string, e: Event|undefined) => {
-        requestCodeCompile(value);
+    const onCodeChange = (code: string, e: Event|undefined) => {
+        let parts = code.split('cast ');
+        setGeneratedInstructions(JSON.stringify(parts));
     }
 
     const action = async () => {
         let skippedFirst = false;
-        for(let cmd of lastCompiledCode) {
+        for(let cmd of JSON.parse(generatedInstructions)) {
             ["fire", "water", "earth"].forEach(el => {
                 if (cmd.startsWith(el)){
                     unityContext.send("Player", "TriggerAction", el);
@@ -49,11 +50,6 @@ const App = () => {
                 await new Promise(a => setTimeout(a, 500));
             }
         }
-    }
-
-    const requestCodeCompile = (code: string) => {
-        let parts = code.split('cast ');
-        setLastCompiledCode(parts);
     }
 
     unityContext.on("RequestAction", ()=>{

@@ -5,6 +5,8 @@ import ReactBlockly from 'react-blockly';
 import {generateSpel, INITIAL_XML} from '../language/BlocklySpel';
 import { INProps, ItemNode, ItemNodeType } from './ItemNode';
 
+import {compile} from 'spells';
+
 type onCodeChangeCb = (code: string, e: Event|undefined)=> void;
 
 interface EditorProps{
@@ -36,12 +38,22 @@ class Editor extends React.Component<EditorProps, EditorState>{
 
     workspaceDidChange (workspace: any) {
         const [code, newXml] = generateSpel(workspace);
+        let compileResult = compile(code);
+        console.log(compileResult);
+        if (compileResult.status){
+            this.setState({
+                ...this.state,
+                compilerOut: code,
+                xmlCode: newXml
+            });
+        } else {
+            this.setState({
+                ...this.state,
+                compilerOut: compileResult.result,
+                xmlCode: newXml
+            });
+        }
         this.state.cb(code, undefined);
-        this.setState({
-            ...this.state,
-            compilerOut: code,
-            xmlCode: newXml
-        });
     }
 
     flipActive(){
