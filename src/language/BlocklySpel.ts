@@ -24,10 +24,10 @@ const BLOCKS_DICTIONARY: {[key:string]: object} = {
 };
 
 (Blockly as any).Spel = new Blockly.Generator("Spel");
-const bjs = (Blockly as any).Spel;
+const bs = (Blockly as any).Spel;
 
-bjs.ORDER_ATOMIC = 0;
-bjs.ORDER_NONE = 99;
+bs.ORDER_ATOMIC = 0;
+bs.ORDER_NONE = 99;
 
 Blockly.Blocks['cast'] = {
     init: function () {
@@ -42,8 +42,8 @@ Blockly.Blocks['cast'] = {
         $.setHelpUrl("");
     }
 };
-bjs['cast'] = function (block: any) {
-    var value_name = bjs.valueToCode(block, 'NAME', bjs.ORDER_ATOMIC);
+bs['cast'] = function (block: any) {
+    var value_name = bs.valueToCode(block, 'NAME', bs.ORDER_ATOMIC);
     var code = 'cast ' + (value_name as string) + '.\n';
     return code;
 };
@@ -59,13 +59,13 @@ Blockly.Blocks['fire'] = {
         $.setHelpUrl("");
     }
 };
-bjs['fire'] = function (block: any) {
-    return ['fire', bjs.ORDER_ATOMIC];
+bs['fire'] = function (block: any) {
+    return ['fire', bs.ORDER_ATOMIC];
 };
 
 const generateSpel = (workspace: Blockly.Workspace): [string, string] => {
     const newXml = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace));
-    const code = bjs.workspaceToCode(workspace);
+    const code = bs.workspaceToCode(workspace);
     return [code, newXml];
 }
 
