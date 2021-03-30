@@ -28,7 +28,6 @@ const App = () => {
     const [generatedInstructions, setGeneratedInstructions] = useState('');
     const [showEditor, setshowEditor] = useState(false);
     const [inventory, setInventory] = useState(inventoryToBlocks(['cast']) as object[]);
-    const canvasRef = useRef<Editor|null>(null);
     
     const onCodeChange = (code: string, e: Event|undefined) => {
         let parts = code.split('cast ');
@@ -92,7 +91,7 @@ const App = () => {
                         width={"very wide"}
                         style={{padding: '1em', width:"50%", height:"100%"}}
                     >
-                        <Editor cb={onCodeChange} inventory={inventory} ref={canvasRef}/>
+                        <Editor cb={onCodeChange} inventory={inventory}/>
                     </Sidebar>
 
                     <Sidebar.Pusher dimmed={showEditor} as="div">
