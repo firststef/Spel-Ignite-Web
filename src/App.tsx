@@ -3,10 +3,6 @@ import './App.css';
 
 import { Container, Grid, Header, Segment, Sidebar } from 'semantic-ui-react';
 
-// import AceEditor from 'react-ace';
-// import "ace-builds/src-noconflict/mode-java";
-// import "ace-builds/src-noconflict/theme-github";
-
 import Unity, { UnityContext } from 'react-unity-webgl';
 import { BLOCKS_DICTIONARY } from './language/BlocklySpel';
 import { Editor } from './components/Editor';
@@ -17,8 +13,6 @@ const unityContext = new UnityContext({
     frameworkUrl: "Build/html.framework.js",
     codeUrl: "Build/html.wasm",
 });
-
-//todo unde am ramas: add first challange
 
 function inventoryToBlocks(inv: Array<string>) : Array<object>{
     return inv.map(el => BLOCKS_DICTIONARY[el]);

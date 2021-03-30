@@ -5,6 +5,10 @@ import ReactBlockly from 'react-blockly';
 import {generateSpel, INITIAL_XML} from '../language/BlocklySpel';
 import { INProps, ItemNode, ItemNodeType } from './ItemNode';
 
+import AceEditor from 'react-ace';
+import "ace-builds/src-noconflict/mode-java";
+import "ace-builds/src-noconflict/theme-github";
+
 import {compile} from 'spells';
 
 type onCodeChangeCb = (code: string, e: Event|undefined)=> void;
@@ -27,6 +31,7 @@ function Editor (props: EditorProps) {
 
     const [activePane, setActivePane] = useState(0);
     const [compilerOut, setCompilerOut] = useState('Type the code in the input area to compile it and CAST it.');
+    const [spelCode, setSpelCode] = useState('');
     const [xmlCode, setXmlCode] = useState(INITIAL_XML);
     const [inventory, setInventory] = useState(props.inventory);
     const [files, setFiles] = useState(defaultFiles());
@@ -35,20 +40,26 @@ function Editor (props: EditorProps) {
         setInventory(props.inventory);
     }, [props.inventory]);
 
-    const workspaceDidChange = (workspace: any) => {
-        const [code, newXml] = generateSpel(workspace);
+    const compileCode = (code: string)=>{
         let compileResult = compile(code);
-        console.log(compileResult);
-        if (compileResult.status){
+        setSpelCode(code);
+        console.log(compileResult.result?.toString());
+        if (compileResult.status == 'ok'){
             setCompilerOut(code);
         } else {
             setCompilerOut(compileResult.result);
         }
+    }
+
+    const workspaceDidChange = (workspace: any) => {
+        const [code, newXml] = generateSpel(workspace);
+        compileCode(code);
         setXmlCode(newXml);
         props.cb(code, undefined);
     }
 
     const onCodeChange = (code: string) =>{
+        compileCode(code);
         props.cb(code, undefined);
     }
 
@@ -71,7 +82,7 @@ function Editor (props: EditorProps) {
                         <Tab panes={[
                             {
                                 menuItem: 'tablets',
-                                pane: (
+                                pane: activePane == 0 && (
                                 <ReactBlockly
                                 style={{overflow:'hidden'}}
                                 toolboxBlocks={inventory}
@@ -86,21 +97,22 @@ function Editor (props: EditorProps) {
                                 key={0}
                                 />
                             )},
-                            // {
-                            //     menuItem: 'script',
-                            //     pane: this.state.activePane == 0 && (
-                            //     <AceEditor
-                            //         mode="java"
-                            //         theme="github"
-                            //         onChange={$.onCodeChange.bind($)}
-                            //         name="editorSpel"
-                            //         editorProps={{ $blockScrolling: true }}
-                            //         width='auto'
-                            //         wrapEnabled
-                            //         key={1}
-                            //         placeholder='Write code for your spell here'
-                            //     />
-                            // )},
+                            {
+                                menuItem: 'script',
+                                pane: activePane == 1 && (
+                                <AceEditor
+                                    mode="java"
+                                    theme="github"
+                                    onChange={onCodeChange}
+                                    name="editorSpel"
+                                    editorProps={{ $blockScrolling: true }}
+                                    width='auto'
+                                    wrapEnabled
+                                    key={1}
+                                    placeholder='Write code for your spell here'
+                                    value={spelCode}
+                                />
+                            )},
                         ]} 
                         renderActiveOnly={false}
                         onTabChange={flipActive}
