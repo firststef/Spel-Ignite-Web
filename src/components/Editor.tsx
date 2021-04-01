@@ -6,8 +6,8 @@ import {generateSpel, INITIAL_XML} from '../language/BlocklySpel';
 import { INProps, ItemNode, ItemNodeType } from './ItemNode';
 
 import AceEditor from 'react-ace';
-import "ace-builds/src-noconflict/mode-java";
-import "ace-builds/src-noconflict/theme-github";
+import "ace-builds/src-noconflict/mode-plain_text";
+import "ace-builds/src-noconflict/theme-monokai";
 
 import {compile} from 'spells';
 
@@ -42,25 +42,27 @@ function Editor (props: EditorProps) {
 
     const compileCode = (code: string)=>{
         let compileResult = compile(code);
-        setSpelCode(code);
-        console.log(compileResult.result?.toString());
+        let result = compileResult.result?.toString();
+        console.log(result);
         if (compileResult.status == 'ok'){
-            setCompilerOut(code);
+            setCompilerOut('spell is complete.');
+            let sc = JSON.stringify(compileResult.result);
+            props.cb(sc, undefined);
         } else {
-            setCompilerOut(compileResult.result);
+            setCompilerOut(JSON.stringify(compileResult.errors));
         }
     }
 
     const workspaceDidChange = (workspace: any) => {
         const [code, newXml] = generateSpel(workspace);
         compileCode(code);
+        setSpelCode(code);
         setXmlCode(newXml);
-        props.cb(code, undefined);
     }
 
     const onCodeChange = (code: string) =>{
         compileCode(code);
-        props.cb(code, undefined);
+        setSpelCode(code);
     }
 
     const flipActive = () => {
@@ -101,7 +103,7 @@ function Editor (props: EditorProps) {
                                 menuItem: 'script',
                                 pane: activePane == 1 && (
                                 <AceEditor
-                                    mode="java"
+                                    mode="plain_text"
                                     theme="github"
                                     onChange={onCodeChange}
                                     name="editorSpel"
@@ -123,7 +125,7 @@ function Editor (props: EditorProps) {
             </Grid>
         </Segment>
         <Segment inverted fluid="true">
-            <pre>{compilerOut}</pre>
+            <p>{compilerOut}</p>
         </Segment>
         </>
     );

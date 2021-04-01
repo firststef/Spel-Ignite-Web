@@ -24,25 +24,12 @@ const App = () => {
     const [inventory, setInventory] = useState(inventoryToBlocks(['cast']) as object[]);
     
     const onCodeChange = (code: string, e: Event|undefined) => {
-        let parts = code.split('cast ');
-        setGeneratedInstructions(JSON.stringify(parts));
+        setGeneratedInstructions(code);
     }
 
     const action = async () => {
-        let skippedFirst = false;
-        for(let cmd of JSON.parse(generatedInstructions)) {
-            ["fire", "water", "earth"].forEach(el => {
-                if (cmd.startsWith(el)){
-                    unityContext.send("Player", "TriggerAction", el);
-                }
-            });
-            if (!skippedFirst){
-                skippedFirst = true;
-            }
-            else{
-                await new Promise(a => setTimeout(a, 500));
-            }
-        }
+        console.log('send to unity ', generatedInstructions);
+        unityContext.send("Player", "TriggerAction", generatedInstructions);
     }
 
     unityContext.on("RequestAction", ()=>{
