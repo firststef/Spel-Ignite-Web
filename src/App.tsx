@@ -21,7 +21,9 @@ function inventoryToBlocks(inv: Array<string>) : Array<object>{
 const App = () => {
     const [generatedInstructions, setGeneratedInstructions] = useState('');
     const [showEditor, setshowEditor] = useState(false);
-    const [inventory, setInventory] = useState(inventoryToBlocks(['cast']) as object[]);
+    const [inventory, setInventory] = useState(inventoryToBlocks(
+        ['cast', 'fire', 'water', 'earth', 'growth', 'enchant', 'speed', 'while', 'playerMana']
+    ) as object[]);
     
     const onCodeChange = (code: string, e: Event|undefined) => {
         setGeneratedInstructions(code);
