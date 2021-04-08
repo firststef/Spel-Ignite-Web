@@ -14,16 +14,20 @@ const unityContext = new UnityContext({
     codeUrl: "Build/html.wasm",
 });
 
-function inventoryToBlocks(inv: Array<string>) : Array<object>{
-    return inv.map(el => BLOCKS_DICTIONARY[el]);
-}
-
 const App = () => {
+    const defaultInventory = [
+        'cast',
+        'fire',
+        'water',
+        'earth',
+        'growth',
+        'enchant',
+        'speed',
+        'while',
+    ];
     const [generatedInstructions, setGeneratedInstructions] = useState('');
     const [showEditor, setshowEditor] = useState(false);
-    const [inventory, setInventory] = useState(inventoryToBlocks(
-        ['cast', 'fire', 'water', 'earth', 'growth', 'enchant', 'speed', 'while', 'playerMana']
-    ) as object[]);
+    const [inventory, setInventory] = useState(defaultInventory);
     
     const onCodeChange = (code: string, e: Event|undefined) => {
         setGeneratedInstructions(code);
@@ -44,7 +48,7 @@ const App = () => {
         setshowEditor(false);
     });
     unityContext.on("UpdateInventory", (str)=>{
-        setInventory(inventoryToBlocks((JSON.parse(str) as any)['inventory']));
+        setInventory((JSON.parse(str) as any)['inventory']);
     });
     unityContext.on("canvas", (canvas) => {
         canvas.focus();

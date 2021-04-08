@@ -2,20 +2,26 @@ import React,  { CSSProperties, useState, useRef, useEffect, useMemo } from 'rea
 import { Grid, Header, Segment, Tab} from 'semantic-ui-react';
 
 import ReactBlockly from 'react-blockly';
-import {generateSpel, INITIAL_XML} from '../language/BlocklySpel';
+import {BLOCKS_DICTIONARY, generateSpel, INITIAL_XML} from '../language/BlocklySpel';
 import { INProps, ItemNode, ItemNodeType } from './ItemNode';
 
 import AceEditor from 'react-ace';
 import "ace-builds/src-noconflict/mode-plain_text";
 import "ace-builds/src-noconflict/theme-monokai";
 
+import {XML, XMLList} from 'sxml';
+
 import {compile} from 'spells';
 
 type onCodeChangeCb = (code: string, e: Event|undefined)=> void;
 
+function inventoryToBlocks(inv: Array<string>) : Array<object>{
+    return inv.map((el:any) => BLOCKS_DICTIONARY[el]);
+}
+
 interface EditorProps {
     cb: onCodeChangeCb,
-    inventory: Array<object>
+    inventory: Array<string>
 }
 
 function Editor (props: EditorProps) {
@@ -69,25 +75,73 @@ function Editor (props: EditorProps) {
         setActivePane(activePane == 0 ? 1 : 0);
     }
 
+    const recurseSearch = (xml: XML, already:string[]) =>{
+        let blocks: XMLList = xml.get("block");
+        for (let i=0;i<blocks.size();i++){
+            let at = blocks.at(i);
+            at.findProperty("type");
+            already.push(at.getProperty("type")); 
+            try{
+                let values = at.get("value");
+                for (let i=0;i<values.size();i++){
+                    recurseSearch(values.at(i), already);
+                }
+            }
+            catch(e){}
+
+            try{
+                let statement = at.get("statement");
+                for (let i=0;i<statement.size();i++){
+                    recurseSearch(statement.at(i), already);
+                }
+            }
+            catch(e){}
+        }
+    };
+
+    const dumpExistent = (inv: Map<string, number>) => {
+        let ret:string[] = [];
+        inv.forEach((v, f) => {
+            if (v > 0){
+                ret.push(f);
+            }
+        });
+        return ret;
+    }
+
+    const filterAvailableInventory = () => {
+        let countMap: Map<string, number> = new Map<string, number>();
+        inventory.map(el => countMap.set(el, (countMap.get(el) != null? (countMap.get(el) as any) : 0) + 1));
+        try{
+            let xml: XML = new XML(xmlCode);
+            let already: string[] = [];
+            recurseSearch(xml, already);
+            already.map(el => countMap.set(el, (countMap.get(el) as any) - 1));
+        }
+        catch(e){
+        }
+        return dumpExistent(countMap);
+    };
+
     return (
         <>
         <Segment inverted style={{backgroundColor:"#036780"}}>
             <Grid stackable verticalAlign='middle'>
                 <Grid.Row>
-                    <Grid.Column width={3} floated='left' verticalAlign='top' style={{height:'100%', display:'flex',paddingRight:0}}>
+                    {/* <Grid.Column width={3} floated='left' verticalAlign='top' style={{height:'100%', display:'flex',paddingRight:0}}>
                         <Header as="h3" style={{color:'white'}} textAlign="center">Inventory</Header>
                         <div style={{flexGrow:1,overflowX:'scroll',overflowY:'hidden'}}>
                             <ItemNode {...files}/>
                         </div>
-                    </Grid.Column>
-                    <Grid.Column width={13} floated='right' verticalAlign='middle'>
+                    </Grid.Column> */}
+                    <Grid.Column /*width={13}*/ floated='right' verticalAlign='middle'>
                         <Tab panes={[
                             {
                                 menuItem: 'tablets',
                                 pane: activePane == 0 && (
                                 <ReactBlockly
                                 style={{overflow:'hidden'}}
-                                toolboxBlocks={inventory}
+                                toolboxBlocks={inventoryToBlocks(filterAvailableInventory())}
                                 workspaceConfiguration={{
                                     grid: {
                                     colour: '#ccc',
@@ -111,7 +165,7 @@ function Editor (props: EditorProps) {
                                     width='auto'
                                     wrapEnabled
                                     key={1}
-                                    placeholder='Write code for your spell here'
+                                    placeholder={spelCode}
                                     value={spelCode}
                                 />
                             )},

@@ -20,7 +20,7 @@
     "react-dom": "latest",
     "react-unity-webgl": "^8.2.4",
     "semantic-ui-react": "^2.0.3",
-    "spells": "git+https://github.com/firststef/SPEL-Ignite.git"
+    "sxml": "^1.0.4"
   },
   "devDependencies": {
     "semantic-ui-css": "^2.4.1",
