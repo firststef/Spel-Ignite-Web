@@ -8,10 +8,10 @@ import { BLOCKS_DICTIONARY } from './language/BlocklySpel';
 import { Editor } from './components/Editor';
 
 const unityContext = new UnityContext({
-    loaderUrl: "Build/html.loader.js",
-    dataUrl: "Build/html.data",
-    frameworkUrl: "Build/html.framework.js",
-    codeUrl: "Build/html.wasm",
+    loaderUrl: "Build/WebGL.loader.js",
+    dataUrl: "Build/WebGL.data",
+    frameworkUrl: "Build/WebGL.framework.js",
+    codeUrl: "Build/WebGL.wasm",
 });
 
 const App = () => {
