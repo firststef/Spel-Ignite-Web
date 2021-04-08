@@ -30,6 +30,12 @@ const BLOCKS_DICTIONARY: {[key:string]: object} = {
     "playerMana":{
         type:"playerMana"
     },
+    "orb": {
+        type:"orb"
+    },
+
+
+
     "controls_if": {
         type: 'controls_if'
     },
@@ -132,21 +138,17 @@ bs['cast'] = function (block: any) {
 // Growth
 Blockly.Blocks['growth'] = {
     init: function() {
-        const $ = (this as any);
-        $.appendValueInput("skill")
-            .setCheck("skill")
+        let $ = (this as any);
+        $.appendDummyInput()
             .appendField("growth");
-        $.setInputsInline(false);
-        $.setOutput(true, "skill");
-        $.setColour(300);
+        $.setOutput(true, "modifier");
+        $.setColour(135);
         $.setTooltip("");
         $.setHelpUrl("");
     }
 };
 bs['growth'] = function (block: any) {
-    var value_skill = bs.valueToCode(block, 'skill', bs.ORDER_ATOMIC);
-    var code = 'enchant ' + (value_skill as string) + ' with growth.';
-    return [code, bs.ORDER_ATOMIC];
+    return ['growth', bs.ORDER_ATOMIC];
 };
 
 // Enchant speed
@@ -233,6 +235,22 @@ bs['while'] = function (block: any) {
     }
     var code = 'as long as ' + (value as string) + ' : \n' + stmts + '\nterminus';
     return [code, bs.ORDER_ATOMIC];
+};
+
+// Orb
+Blockly.Blocks['orb'] = {
+    init: function() {
+        let $ = (this as any);
+        $.appendDummyInput()
+            .appendField("orb");
+        $.setOutput(true, "modifier");
+        $.setColour(135);
+        $.setTooltip("");
+        $.setHelpUrl("");
+    }
+};
+bs['orb'] = function (block: any) {
+    return ['orb', bs.ORDER_ATOMIC];
 };
 
 const generateSpel = (workspace: Blockly.Workspace): [string, string] => {

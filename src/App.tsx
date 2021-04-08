@@ -24,6 +24,8 @@ const App = () => {
         'enchant',
         'speed',
         'while',
+        'playerMana',
+        'orb'
     ];
     const [generatedInstructions, setGeneratedInstructions] = useState('');
     const [showEditor, setshowEditor] = useState(false);

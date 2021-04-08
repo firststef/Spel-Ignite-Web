@@ -12,6 +12,7 @@ import "ace-builds/src-noconflict/theme-monokai";
 import {XML, XMLList} from 'sxml';
 
 import {compile} from 'spells';
+import { SpelError } from 'spells/out/spelVisitor';
 
 type onCodeChangeCb = (code: string, e: Event|undefined)=> void;
 
@@ -46,6 +47,17 @@ function Editor (props: EditorProps) {
         setInventory(props.inventory);
     }, [props.inventory]);
 
+    const prettyPrint = (errs: SpelError[]|undefined) => {
+        if (!errs){
+            return '<>';
+        }
+        let outStr = '';
+        for (let err of errs){
+            outStr += 'error at ' + err.range.start + ' : ' + err.message + '\n';
+        }
+        return outStr;
+    }
+
     const compileCode = (code: string)=>{
         let compileResult = compile(code);
         let result = compileResult.result?.toString();
@@ -55,7 +67,7 @@ function Editor (props: EditorProps) {
             let sc = JSON.stringify(compileResult.result);
             props.cb(sc, undefined);
         } else {
-            setCompilerOut(JSON.stringify(compileResult.errors));
+            setCompilerOut(prettyPrint(compileResult.errors));
         }
     }
 
