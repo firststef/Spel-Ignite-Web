@@ -103,7 +103,7 @@ const App = () => {
                 </Sidebar.Pushable>
             </div>
             <Container>
-                <Segment style={{ padding: '2em 1em', color: 'purple', backgroundColor:'rgba(76, 175, 80, 0.8)', fontFamily:'JoystixMonospace', fontSize:'13px'}} vertical>
+                <Segment style={{ padding: '2em 1em', color: '#800080', backgroundColor:'rgba(76, 175, 80, 0.8)', fontFamily:'JoystixMonospace', fontSize:'13px'}} vertical>
                     <Header
                         content="How to play"
                         style={{ color: 'gold', fontFamily:'JoystixMonospace'}}
