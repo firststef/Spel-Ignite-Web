@@ -7,7 +7,7 @@ import { INProps, ItemNode, ItemNodeType } from './ItemNode';
 
 import AceEditor from 'react-ace';
 import "ace-builds/src-noconflict/mode-plain_text";
-import "ace-builds/src-noconflict/theme-monokai";
+import "ace-builds/src-noconflict/theme-github";
 
 import {XML, XMLList} from 'sxml';
 
@@ -191,7 +191,9 @@ function Editor (props: EditorProps) {
             </Grid>
         </Segment>
         <Segment inverted fluid="true">
-            <p>{compilerOut}</p>
+            <p>Compiler out:<br/>
+                {compilerOut}
+            </p>
         </Segment>
         </>
     );

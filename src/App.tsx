@@ -1,10 +1,11 @@
-import React, { CSSProperties, useState, useRef, useEffect } from 'react';
+import './fonts/joystix_monospace.ttf';
 import './App.css';
 
-import { Container, Grid, Header, Segment, Sidebar } from 'semantic-ui-react';
+import React, { CSSProperties, useState, useRef, useEffect } from 'react';
+
+import { Container, Header, Segment, Sidebar } from 'semantic-ui-react';
 
 import Unity, { UnityContext } from 'react-unity-webgl';
-import { BLOCKS_DICTIONARY } from './language/BlocklySpel';
 import { Editor } from './components/Editor';
 
 const unityContext = new UnityContext({
@@ -15,17 +16,21 @@ const unityContext = new UnityContext({
 });
 
 const App = () => {
+    useEffect(() => {    
+        document.title = "Spel";
+    });
+
     const defaultInventory = [
         'cast',
-        'fire',
-        'water',
-        'earth',
-        'growth',
-        'enchant',
-        'speed',
-        'while',
-        'playerMana',
-        'orb'
+        // 'fire',
+        // 'water',
+        // 'earth',
+        // 'growth',
+        // 'enchant',
+        // 'speed',
+        // 'while',
+        // 'playerMana',
+        // 'orb'
     ];
     const [generatedInstructions, setGeneratedInstructions] = useState('');
     const [showEditor, setshowEditor] = useState(false);
@@ -37,7 +42,9 @@ const App = () => {
 
     const action = async () => {
         console.log('send to unity ', generatedInstructions);
-        unityContext.send("Player", "TriggerAction", generatedInstructions);
+        if (generatedInstructions != '' && generatedInstructions != null) {
+            unityContext.send("Player", "TriggerAction", generatedInstructions);
+        }
     }
 
     unityContext.on("RequestAction", ()=>{
@@ -55,15 +62,22 @@ const App = () => {
     unityContext.on("canvas", (canvas) => {
         canvas.focus();
     });
+    unityContext.on("error", (message) => {
+        alert('Oops, SPEL IGNITE threw an error. You can send the developer a message if you want, but keep in mind this is a development build. ' +
+        'The error message was: '+ message);
+    });
 
     return (
         <div className="App" style={{ 
-            backgroundImage: `url("https://external-preview.redd.it/a4VESb6Bk1hJBnH0riwFOgoKMlag6T9_QJCAJRtry4g.png?format=pjpg&auto=webp&s=08a89deb8ef4de3e65945e7d2ed6f760baabafb8")` 
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize:'cover',
+            backgroundImage: `url("https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/01073865290819.5d61d475f0072.jpg")`,
             }}>
             <Header 
                 as='h1' 
-                style={{ fontSize: '10em' }} 
-                content="Spel" 
+                style={{ fontSize: '7em', color:'gold', fontFamily:'JoystixMonospace' }} 
+                content="Spel Ignite" 
                 subheader="A fantasy coding experience"
                 textAlign="center"
             />
@@ -89,14 +103,147 @@ const App = () => {
                 </Sidebar.Pushable>
             </div>
             <Container>
-                <Segment style={{ padding: '8em 0em' }} vertical>
-                    <Grid container columns='equal' stackable verticalAlign='middle'>
-                        <Grid.Row>
-                            <Grid.Column>
-                                {'This section will be dedicated to a written tutorial for the players'}
-                            </Grid.Column>
-                        </Grid.Row>
-                    </Grid>
+                <Segment style={{ padding: '2em 1em', color: 'purple', backgroundColor:'rgba(76, 175, 80, 0.8)', fontFamily:'JoystixMonospace', fontSize:'13px'}} vertical>
+                    <Header
+                        content="How to play"
+                        style={{ color: 'gold', fontFamily:'JoystixMonospace'}}
+                    />
+                    <p>
+                        WASD = move character<br/>
+                        Left Click = sword attack (it is rather useless, you're actually way better at magic)<br/>
+                        Right Click = Trigger the current spell (or more precisely, the most recent correct spell)<br/>
+                        Space = Open spell editor
+                    </p>
+                    <div style={{ fontSize:'11px'}}>
+                    <Header
+                        content="What is this game"
+                        style={{ color: 'white', fontFamily:'JoystixMonospace'}}
+                    />
+                    <p>
+                        Actually let's start with why 
+                    </p>
+                    <Header
+                        content="Why is this game"
+                        style={{ color: 'white', fontFamily:'JoystixMonospace'}}
+                    />
+                    <p>
+                        As a coder you might have one day encountered a particular language feature that amazed you 
+                        (for me, c++'s making recursive functions using variadic parameter packs was particularly addicting).
+                        Discovering a language is really fun. Not to mention, sometimes it feels like 
+                        <span style={{color:'blue'}}> magic</span>.
+                    </p>
+                    <p>
+                        I particularly like weird languages. When i found <a href="https://esolangs.org/wiki/Main_Page">esolangs</a> I
+                        was really inspired. I also made a weird looking language, <a href="https://github.com/firststef/SPEL">SPEL</a>,
+                        in my 2nd year in college, on which i based this project.
+                    </p>
+                    <p>
+                        I wanted to craft a coding experience that was immersive, and the best example of this was found in games.
+                        I play a lot of games, but the games I love all have an interesting world, filled with mistery and beings that 
+                        feel real. 
+                        The game above is (just) the start of a project while pursuing this goal.
+                    </p>
+                    <Header
+                        content="What is this game"
+                        style={{ color: 'white', fontFamily:'JoystixMonospace'}}
+                    />
+                    <p>
+                        When I started the design for this game I asked myself some questions. 
+                        <li>"What is a programming language in a magical world?"</li>
+                        <li>"What is a program in a magical world?"</li>
+                        <li>"If programming is magic, what is executing a program in a magical world?"</li>
+                    </p>
+                    <p>
+                        The answers I found, I tried implementing them in this game. Basically, in a fantasy world, 
+                        a spell is a set of actions the wizard does in order to change something. Magic is what we 
+                        call the execution of these instructions. About the nature of these actions: are they mana-oriented?
+                    </p>
+                    <p>
+                        Mana, a source of energy found present in some creatures, is most of the times the generator for spells.
+                        This energy kinda resembles a program flow, by expanding or burning it in different ways you can 
+                        obtain different effects. I imagined mana system that is based on the different attributes of mana:
+                    </p>
+                    <Segment inverted>
+                        <p>store x = obtain mana from body 80.</p>
+                        <p>store x = transmute mana to fire mana.</p>
+                        <p>create fire orb y from x.</p>
+                        <p>apply mana reinforcement to y.</p>
+                        <p>throw y as fireball.</p>
+                    </Segment>
+                    <p>
+                        Even though it sounded cool, it felt very limiting, dwelling on the various aspects of mana. I wanted
+                        to focus on gameplay too, and also there is more to magic then mana. The way you interact with the world, 
+                        the environment are also very important. Also i didn't want to make a game that feels like making chemistry
+                        with mana.
+                    </p>
+                    <p>
+                        The technology used backdoors is really complex, which is why I had to limit my design time and come with
+                        a valid solution quick, to allow time for development. The thing is, at the most basic level, magic is about 
+                        making actions. And doing magic is like doing some actions in an ordered fashion, first I charge my mana, 
+                        then I apply some modifiers, etc etc. So in the end, to answer some of my questions, magic is about
+                        automatizing some basic instructions. Spells are a set of these instructions. 
+                    </p>
+                    <p>
+                        The most basic instruction at the time was releasing fire from your hand (or wand). The next level for that 
+                        would be to make that fire take some form and throw it as a fireball. And the next level would be to 
+                        <span style={{color:'red'}}> BURST A HUGE KAMEHAMEHA WAVE AND DESTROY EVERYTHING </span> :))))))).
+                    </p>
+                    <p>
+                        For the current prototype I tried implementing some of the main points of the game, such as writing spells,
+                        casting, progressing by finding blocks (ah yes, btw at first it was just coding, but then some people said 
+                        it was too hard and meh so I added some blocks, and it feels better now), a simple puzzle (because learning
+                        and puzzles work great together).
+                    </p>
+                    <Header
+                        content="How does it work"
+                        style={{ color: 'white', fontFamily:'JoystixMonospace'}}
+                    />
+                    <p>
+                        To explain brielfy, I set the Blockly system to generate SPEL code. This code is passed to a SPEL compiler, 
+                        written in antlr, that gives me a simplified json that tells me what specific instructions are present,
+                        in a convenient tree-structure. This is sent by the javascript in the page to the unity build, which passes
+                        it to a SPEL interpreter written in C# and embedded in the game code.
+                    </p>
+                    </div>
+                    <Header
+                        content="Help"
+                        style={{ color: 'white', fontFamily:'JoystixMonospace'}}
+                    />
+                    <p>
+                        Currently the game has implemented the following features:
+                    </p>
+                    <Segment inverted>
+                        cast [fire|water|earth].
+                    </Segment>
+                    <p>
+                        Modifying spell attributes:
+                    </p>
+                    <Segment inverted>
+                        enchant [fire|water|earth|composed] with [growth|speed]. {'=>'} returns a modified spell
+                    </Segment>
+                    <p>
+                        Changing the nature of spells:
+                    </p>
+                    <Segment inverted>
+                        enchant [fire|water|earth|composed] with [orb]. {'=>'} returns an upgraded spell
+                    </Segment>
+                    <p>
+                        Note that some combinations might have some issues, but I do plan on improving the entire system.
+                    </p>
+                    <Header
+                        content="Contributing"
+                        style={{ color: 'white', fontFamily:'JoystixMonospace'}}
+                    />
+                    <p>
+                        <span style={{color:'blue'}}> DESIGN</span>: As you can see I put some thought into the design of programming 
+                        as a substitute for magic in a 
+                        fantasy world, so you know I feel it is important. I could really use some more ideas to grow this concept, 
+                        so if you want to work with me on this, feel free to message me.
+                    </p>
+                    <p>
+                        <span style={{color:'blue'}}> CODING</span>: For any bugs you find, please open an issue on the 
+                        github <a href="https://github.com/firststef/Spel-Ignite-Game">repository</a>.
+                    </p>
                 </Segment>
             </Container>
         </div>
