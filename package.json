@@ -42,7 +42,7 @@
     "start": "cd build && python -m http.server $PORT",
     "watch": "react-scripts start",
     "run": "electron-forge start --asar",
-    "build": "react-scripts build && unzip Build.zip && mv WebGL/WebGL/Build build && mv WebGL/WebGL/TemplateData build",
+    "build": "npm install && react-scripts build && unzip Build.zip && mv WebGL/WebGL/Build build && mv WebGL/WebGL/TemplateData build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "package": "electron-forge package",
