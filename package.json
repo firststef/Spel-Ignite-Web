@@ -20,7 +20,7 @@
     "react-dom": "latest",
     "react-unity-webgl": "^8.2.4",
     "semantic-ui-react": "^2.0.3",
-    "spells": "git+https://github.com/firststef/SPEL-Ignite.git",
+    "spells": "git+https://github.com/firststef/Spel-Ignite.git",
     "sxml": "^1.0.4"
   },
   "devDependencies": {
@@ -42,7 +42,7 @@
     "start": "cd build && python -m http.server $PORT",
     "watch": "react-scripts start",
     "run": "electron-forge start --asar",
-    "build": "npm install && react-scripts build && unzip Build.zip && mv WebGL/WebGL/Build build && mv WebGL/WebGL/TemplateData build",
+    "build": "react-scripts build && unzip Build.zip && mv WebGL/WebGL/Build build && mv WebGL/WebGL/TemplateData build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "package": "electron-forge package",
