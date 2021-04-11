@@ -230,6 +230,14 @@ const App = () => {
                     <p>
                         Note that some combinations might have some issues, but I do plan on improving the entire system.
                     </p>
+                    <Segment inverted>
+                        <p>as long as [playerMana] {' => '} while player has mana, throw fireball </p>
+                        <p>&emsp;[cast enchant fire with orb.|any]</p>
+                        <p>terminus</p>
+                    </Segment>
+                    <p>
+                        Note that some combinations might have some issues, but I do plan on improving the entire system.
+                    </p>
                     <Header
                         content="Contributing"
                         style={{ color: 'white', fontFamily:'JoystixMonospace'}}
