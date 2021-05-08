@@ -53,7 +53,7 @@ function Editor (props: EditorProps) {
         }
         let outStr = '';
         for (let err of errs){
-            outStr += 'error at ' + err.range.start + ' : ' + err.message + '\n';
+            outStr += 'error at ' + err.range.start + ' : ' + err.message + '\r\n';
         }
         return outStr;
     }
@@ -191,9 +191,9 @@ function Editor (props: EditorProps) {
             </Grid>
         </Segment>
         <Segment inverted fluid="true">
-            <p>Compiler out:<br/>
+            <pre>Compiler out:<br/>
                 {compilerOut}
-            </p>
+            </pre>
         </Segment>
         </>
     );
