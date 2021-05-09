@@ -15,6 +15,9 @@ const BLOCKS_DICTIONARY: {[key:string]: object} = {
     "earth":{
         type: "earth"
     },
+    "ice":{
+        type: "ice"
+    },
     "growth":{
         type: "growth"
     },
@@ -27,27 +30,43 @@ const BLOCKS_DICTIONARY: {[key:string]: object} = {
     "while":{
         type:"while"
     },
-    "playerMana":{
-        type:"playerMana"
+    "playerHasMana":{
+        type:"playerHasMana"
     },
     "orb": {
         type:"orb"
     },
-
-
-
-    "controls_if": {
-        type: 'controls_if'
+    "chargeMana" :{
+        type:"chargeMana"
     },
-    "logic_compare": {
-        type: 'logic_compare'
+    "throwOrb": {
+        type:"throwOrb"
     },
-    "math_number":{
-        type: 'math_number'
+    "createOrb": {
+        type:"createOrb"
     },
-    "text":{
-        type: "text"
-    }
+    "create": {
+        type:"create"
+    },
+    "throw": {
+        type:"throw"
+    },
+    "leftHand": {
+        type:"leftHand"
+    },
+
+    // "controls_if": {
+    //     type: 'controls_if'
+    // },
+    // "logic_compare": {
+    //     type: 'logic_compare'
+    // },
+    // "math_number":{
+    //     type: 'math_number'
+    // },
+    // "text":{
+    //     type: "text"
+    // }
 };
 
 (Blockly as any).Spel = new Blockly.Generator("Spel");
@@ -71,7 +90,7 @@ Blockly.Blocks['fire'] = {
         let $ = (this as any);
         $.appendDummyInput()
             .appendField("fire");
-        $.setOutput(true, "skill");
+        $.setOutput(true, "element");
         $.setColour(230);
         $.setTooltip("");
         $.setHelpUrl("");
@@ -87,7 +106,7 @@ Blockly.Blocks['water'] = {
         let $ = (this as any);
         $.appendDummyInput()
             .appendField("water");
-        $.setOutput(true, "skill");
+        $.setOutput(true, "element");
         $.setColour(230);
         $.setTooltip("");
         $.setHelpUrl("");
@@ -103,7 +122,7 @@ Blockly.Blocks['earth'] = {
         let $ = (this as any);
         $.appendDummyInput()
             .appendField("earth");
-        $.setOutput(true, "skill");
+        $.setOutput(true, "element");
         $.setColour(230);
         $.setTooltip("");
         $.setHelpUrl("");
@@ -113,25 +132,41 @@ bs['earth'] = function (block: any) {
     return ['earth', bs.ORDER_ATOMIC];
 };
 
+// Ice
+Blockly.Blocks['ice'] = {
+    init: function() {
+        let $ = (this as any);
+        $.appendDummyInput()
+            .appendField("ice");
+        $.setOutput(true, "element");
+        $.setColour(230);
+        $.setTooltip("");
+        $.setHelpUrl("");
+    }
+};
+bs['ice'] = function (block: any) {
+    return ['ice', bs.ORDER_ATOMIC];
+};
+
 // Cast
 Blockly.Blocks['cast'] = {
     init: function () {
         const $ = (this as any);
-        $.appendValueInput("skill")
-            .setCheck(['skill'])
+        $.appendValueInput("element")
+            .setCheck(['element'])
             .appendField("cast");
         $.setInputsInline(false);
-        $.setPreviousStatement(true, "stmts");
-        $.setNextStatement(true, "stmts");
-        $.setPreviousStatement(true, "skill");
+        $.setPreviousStatement(true, "statement");
+        $.setNextStatement(true, "statement");
         $.setColour(330);
         $.setTooltip("");
         $.setHelpUrl("");
     }
 };
 bs['cast'] = function (block: any) {
-    var value_skill = bs.valueToCode(block, 'skill', bs.ORDER_ATOMIC);
-    var code = 'cast ' + (value_skill as string) + '.';
+    var value_element = bs.valueToCode(block, 'element', bs.ORDER_ATOMIC) as string;
+    var code = 'charge ' + value_element + ' mana.\n' +
+                'release from hand.';
     return code;
 };
 
@@ -151,33 +186,6 @@ bs['growth'] = function (block: any) {
     return ['growth', bs.ORDER_ATOMIC];
 };
 
-// Enchant speed
-Blockly.Blocks['enchant'] = {
-    init: function() {
-        const $ = (this as any);
-        $.appendDummyInput()
-            .appendField("enchant");
-        $.appendValueInput("skill")
-            .setCheck("skill");
-        $.appendDummyInput()
-            .appendField("with");
-        $.appendValueInput("modifier")
-            .setCheck("modifier")
-            .setAlign(Blockly.ALIGN_RIGHT);
-        $.setInputsInline(true);
-        $.setOutput(true, "skill");
-        $.setColour(75);
-        $.setTooltip("");
-        $.setHelpUrl("");
-    }
-};
-bs['enchant'] = function (block: any) {
-    var value_skill = bs.valueToCode(block, 'skill', bs.ORDER_ATOMIC);
-    var value_modifier = bs.valueToCode(block, 'modifier', bs.ORDER_ATOMIC);
-    var code = 'enchant ' + (value_skill as string) + ' with ' + value_modifier + '.';
-    return [code, bs.ORDER_ATOMIC];
-};
-
 // Speed
 Blockly.Blocks['speed'] = {
     init: function() {
@@ -194,20 +202,48 @@ bs['speed'] = function (block: any) {
     return ['speed', bs.ORDER_ATOMIC];
 };
 
-// PlayerMana
-Blockly.Blocks['playerMana'] = {
+// Enchant
+Blockly.Blocks['enchant'] = {
+    init: function() {
+        const $ = (this as any);
+        $.appendDummyInput()
+            .appendField("enchant");
+        $.appendValueInput("object")
+            .setCheck("object");
+        $.appendDummyInput()
+            .appendField("with");
+        $.appendValueInput("modifier")
+            .setCheck(['element', 'modifier'])
+            .setAlign(Blockly.ALIGN_RIGHT);
+        $.setInputsInline(true);
+        $.setPreviousStatement(true, "statement");
+        $.setNextStatement(true, "statement");
+        $.setColour(75);
+        $.setTooltip("");
+        $.setHelpUrl("");
+    }
+};
+bs['enchant'] = function (block: any) {
+    var object = bs.valueToCode(block, 'object', bs.ORDER_ATOMIC) as string;
+    var modifier = bs.valueToCode(block, 'modifier', bs.ORDER_ATOMIC) as string;
+    var code = 'enchant ' + object + ' with ' + modifier + '.';
+    return code;
+};
+
+// playerHasMana
+Blockly.Blocks['playerHasMana'] = {
     init: function() {
         let $ = (this as any);
         $.appendDummyInput()
-            .appendField("playerMana");
+            .appendField("player has Mana");
         $.setOutput(true, "Boolean");
         $.setColour(135);
         $.setTooltip("");
         $.setHelpUrl("");
     }
 };
-bs['playerMana'] = function (block: any) {
-    return ['playerMana', bs.ORDER_ATOMIC];
+bs['playerHasMana'] = function (block: any) {
+    return ['playerHasMana', bs.ORDER_ATOMIC];
 };
 
 // While
@@ -220,8 +256,9 @@ Blockly.Blocks['while'] = {
             .setCheck("Boolean");
         $.appendDummyInput()
             .appendField(":");
-        $.appendStatementInput("stmts");
-        $.setOutput(true, null);
+        $.appendStatementInput("statements");
+        $.setPreviousStatement(true, "statement");
+        $.setNextStatement(true, "statement");
         $.setColour(230);
         $.setTooltip("");
         $.setHelpUrl("");
@@ -229,12 +266,36 @@ Blockly.Blocks['while'] = {
 };
 bs['while'] = function (block: any) {
     var value = bs.valueToCode(block, 'value', bs.ORDER_ATOMIC);
-    var stmts = bs.statementToCode(block, 'stmts');
+    var stmts = bs.statementToCode(block, 'statements');
     if (stmts == undefined){
         return ['.', bs.ORDER_ATOMIC];
     }
     var code = 'as long as ' + (value as string) + ' : \n' + stmts + '\nterminus';
-    return [code, bs.ORDER_ATOMIC];
+    return code;
+};
+
+// Charge
+Blockly.Blocks['chargeMana'] = {
+    init: function () {
+        const $ = (this as any);
+        $.appendDummyInput()
+            .appendField("charge");
+        $.appendValueInput("element")
+            .setCheck(['element']);
+        $.appendDummyInput()
+            .appendField("mana");
+        $.setInputsInline(true);
+        $.setPreviousStatement(true, "statement");
+        $.setNextStatement(true, "statement");
+        $.setColour(330);
+        $.setTooltip("");
+        $.setHelpUrl("");
+    }
+};
+bs['chargeMana'] = function (block: any) {
+    var element = bs.valueToCode(block, 'element', bs.ORDER_ATOMIC) as string;
+    var code = 'charge ' + element +' mana.';
+    return code;
 };
 
 // Orb
@@ -243,7 +304,7 @@ Blockly.Blocks['orb'] = {
         let $ = (this as any);
         $.appendDummyInput()
             .appendField("orb");
-        $.setOutput(true, "modifier");
+        $.setOutput(true, "object");
         $.setColour(135);
         $.setTooltip("");
         $.setHelpUrl("");
@@ -251,6 +312,115 @@ Blockly.Blocks['orb'] = {
 };
 bs['orb'] = function (block: any) {
     return ['orb', bs.ORDER_ATOMIC];
+};
+
+// Throw Orb
+Blockly.Blocks['throwOrb'] = {
+    init: function () {
+        const $ = (this as any);
+        $.appendValueInput("element")
+            .setCheck(['element'])
+            .appendField("throw orb of");
+        $.setInputsInline(false);
+        $.setPreviousStatement(true, "statement");
+        $.setNextStatement(true, "statement");
+        $.setColour(330);
+        $.setTooltip("");
+        $.setHelpUrl("");
+    }
+};
+bs['throwOrb'] = function (block: any) {
+    var element = bs.valueToCode(block, 'element', bs.ORDER_ATOMIC) as string;
+    var code = 'create orb in left hand.\n' +
+                'enchant orb with ' + element + '.\n' +
+                'throw orb.' ;
+    return code;
+};
+
+// Create Orb
+Blockly.Blocks['createOrb'] = {
+    init: function () {
+        const $ = (this as any);
+        $.appendValueInput("element")
+            .setCheck(['element'])
+            .appendField("create orb with");
+        $.setInputsInline(false);
+        $.setPreviousStatement(true, "statement");
+        $.setNextStatement(true, "statement");
+        $.setColour(330);
+        $.setTooltip("");
+        $.setHelpUrl("");
+    }
+};
+bs['createOrb'] = function (block: any) {
+    var element = bs.valueToCode(block, 'element', bs.ORDER_ATOMIC) as string;
+    var code = 'create orb in left hand.\n' +
+                'enchant orb with ' + element + '.\n';
+    return code;
+};
+
+// Create
+Blockly.Blocks['create'] = {
+    init: function () {
+        const $ = (this as any);
+        $.appendDummyInput()
+            .appendField("create");
+        $.appendValueInput("object")
+            .setCheck(['object']);
+        $.appendDummyInput()
+            .appendField("in");
+        $.appendValueInput("holder")
+            .setCheck(['holder']);
+        $.setInputsInline(true);
+        $.setPreviousStatement(true, "statement");
+        $.setNextStatement(true, "statement");
+        $.setColour(330);
+        $.setTooltip("");
+        $.setHelpUrl("");
+    }
+};
+bs['create'] = function (block: any) {
+    var object = bs.valueToCode(block, 'object', bs.ORDER_ATOMIC) as string;
+    var holder = bs.valueToCode(block, 'holder', bs.ORDER_ATOMIC) as string;
+    var code = 'create ' + object + ' in ' + holder + '.\n';
+    return code;
+};
+
+// Left Hand 
+Blockly.Blocks['leftHand'] = {
+    init: function() {
+        let $ = (this as any);
+        $.appendDummyInput()
+            .appendField("left hand");
+        $.setOutput(true, "holder");
+        $.setColour(135);
+        $.setTooltip("");
+        $.setHelpUrl("");
+    }
+};
+bs['leftHand'] = function (block: any) {
+    return ['left hand', bs.ORDER_ATOMIC];
+};
+
+// Throw
+Blockly.Blocks['throw'] = {
+    init: function () {
+        const $ = (this as any);
+        $.appendValueInput("object")
+            .setCheck(['object'])
+            .appendField("throw");
+        $.setInputsInline(false);
+        $.setPreviousStatement(true, "statement");
+        $.setNextStatement(true, "statement");
+        $.setColour(330);
+        $.setTooltip("");
+        $.setHelpUrl("");
+    }
+};
+bs['throw'] = function (block: any) {
+    var object = bs.valueToCode(block, 'object', bs.ORDER_ATOMIC) as string;
+    var code = 'throw ' + object +'.';
+    return code;
 };
 
 const generateSpel = (workspace: Blockly.Workspace): [string, string] => {

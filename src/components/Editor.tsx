@@ -63,8 +63,8 @@ function Editor (props: EditorProps) {
         let result = compileResult.result?.toString();
         console.log(result);
         if (compileResult.status == 'ok'){
-            setCompilerOut('spell is complete.');
             let sc = JSON.stringify(compileResult.result);
+            setCompilerOut(sc);
             props.cb(sc, undefined);
         } else {
             setCompilerOut(prettyPrint(compileResult.errors));
@@ -139,7 +139,7 @@ function Editor (props: EditorProps) {
         <>
         <Segment inverted style={{backgroundColor:"#036780"}}>
             <Grid stackable verticalAlign='middle'>
-                <Grid.Row>
+                <Grid.Row stretched>
                     {/* <Grid.Column width={3} floated='left' verticalAlign='top' style={{height:'100%', display:'flex',paddingRight:0}}>
                         <Header as="h3" style={{color:'white'}} textAlign="center">Inventory</Header>
                         <div style={{flexGrow:1,overflowX:'scroll',overflowY:'hidden'}}>
@@ -169,6 +169,7 @@ function Editor (props: EditorProps) {
                                 menuItem: 'script',
                                 pane: activePane == 1 && (
                                 <AceEditor
+                                    style={{height:"67vh"}}
                                     mode="plain_text"
                                     theme="github"
                                     onChange={onCodeChange}
@@ -190,10 +191,9 @@ function Editor (props: EditorProps) {
                 </Grid.Row>
             </Grid>
         </Segment>
-        <Segment inverted fluid="true">
-            <pre>Compiler out:<br/>
+        <Segment inverted fluid="true" style={{height:"13vh"}}>
+        Compiler out:<br/>
                 {compilerOut}
-            </pre>
         </Segment>
         </>
     );

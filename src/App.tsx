@@ -7,6 +7,7 @@ import { Container, Header, Segment, Sidebar, Tab, TabProps } from 'semantic-ui-
 
 import Unity, { UnityContext } from 'react-unity-webgl';
 import { Editor } from './components/Editor';
+import { BLOCKS_DICTIONARY } from './language/BlocklySpel';
 
 const unityContext = new UnityContext({
     loaderUrl: "Build/WebGL.loader.js",
@@ -20,18 +21,7 @@ const App = () => {
         document.title = "Spel";
     });
 
-    const defaultInventory = [
-        'cast',
-        // 'fire',
-        // 'water',
-        // 'earth',
-        // 'growth',
-        // 'enchant',
-        // 'speed',
-        // 'while',
-        // 'playerMana',
-        // 'orb'
-    ];
+    const defaultInventory = Object.keys(BLOCKS_DICTIONARY);
     const [generatedInstructions, setGeneratedInstructions] = useState('');
     const [showEditor, setshowEditor] = useState(false);
     const [inventory, setInventory] = useState(defaultInventory);
@@ -58,7 +48,7 @@ const App = () => {
         setshowEditor(false);
     });
     unityContext.on("UpdateInventory", (str)=>{
-        setInventory((JSON.parse(str) as any)['inventory']);
+        //setInventory((JSON.parse(str) as any)['inventory']);
     });
     unityContext.on("canvas", (canvas) => {
         canvas.focus();
