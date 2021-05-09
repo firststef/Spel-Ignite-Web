@@ -105,6 +105,6 @@ class httpHandler(BaseHTTPRequestHandler):
     self.end_headers()
 
 if __name__ == "__main__":
-  time.sleep(10)
+  time.sleep(30)
   artifact_url = get_latest_artifact_url(WORKFLOW_NAME, WORKFLOW_EVENT, ARTIFACT_NAME)
   os.system('curl -L -u firststef:${GITHUB_TOKEN} -H "User-Agent: firststef" ' + artifact_url + ' --output Build.zip')
