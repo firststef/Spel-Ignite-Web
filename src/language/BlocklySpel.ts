@@ -54,6 +54,29 @@ const BLOCKS_DICTIONARY: {[key:string]: object} = {
     "leftHand": {
         type:"leftHand"
     },
+    "say":{
+        type:"say"
+    },
+    "String": {
+        "type": "String",
+        "message0": "say %1 %2",
+        "args0": [
+            {
+            "type": "input_dummy"
+            },
+            {
+            "type": "field_input",
+            "name": "message",
+            "text": "anything"
+            }
+        ],
+        "inputsInline": true,
+        "previousStatement": "statement",
+        "nextStatement": "statement",
+        "colour": 45,
+        "tooltip": "",
+        "helpUrl": ""
+    }
 
     // "controls_if": {
     //     type: 'controls_if'
@@ -421,6 +444,44 @@ bs['throw'] = function (block: any) {
     var object = bs.valueToCode(block, 'object', bs.ORDER_ATOMIC) as string;
     var code = 'throw ' + object +'.';
     return code;
+};
+
+// Say
+Blockly.Blocks['say'] = {
+    init: function () {
+        const $ = (this as any);
+        $.appendValueInput("message")
+            .setCheck(['String'])
+            .appendField("say");
+        $.setInputsInline(false);
+        $.setPreviousStatement(true, "statement");
+        $.setNextStatement(true, "statement");
+        $.setColour(45);
+        $.setTooltip("");
+        $.setHelpUrl("");
+    }
+};
+bs['say'] = function (block: any) {
+    var value_element = bs.valueToCode(block, 'message', bs.ORDER_ATOMIC) as string;
+    var code = 'say "' + value_element + '"';
+    return code;
+};
+
+// String
+Blockly.Blocks['String'] = {
+    init: function () {
+        const $ = (this as any);
+        $.appendDummyInput()
+            .appendField(new Blockly.FieldTextInput("anything"), "message");
+        // $.setInputsInline(true);
+        $.setOutput(true, "String");
+        $.setColour(210);
+        $.setTooltip("");
+        $.setHelpUrl("");
+    }
+};
+bs['String'] = function (block: any) {
+    return [block.getFieldValue('message') as string, bs.ORDER_ATOMIC];
 };
 
 const generateSpel = (workspace: Blockly.Workspace): [string, string] => {
