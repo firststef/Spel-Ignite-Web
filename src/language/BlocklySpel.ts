@@ -463,7 +463,7 @@ Blockly.Blocks['say'] = {
 };
 bs['say'] = function (block: any) {
     var value_element = bs.valueToCode(block, 'message', bs.ORDER_ATOMIC) as string;
-    var code = 'say "' + value_element + '"';
+    var code = 'say \'' + value_element + '\'';
     return code;
 };
 
