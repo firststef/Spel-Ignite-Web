@@ -64,7 +64,7 @@ function Editor (props: EditorProps) {
         console.log(result);
         if (compileResult.status == 'ok'){
             let sc = JSON.stringify(compileResult.result);
-            setCompilerOut(sc);
+            setCompilerOut('spell is complete.');
             props.cb(sc, undefined);
         } else {
             setCompilerOut(prettyPrint(compileResult.errors));

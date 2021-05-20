@@ -48,7 +48,7 @@ const App = () => {
         setshowEditor(false);
     });
     unityContext.on("UpdateInventory", (str)=>{
-        //setInventory((JSON.parse(str) as any)['inventory']);
+        setInventory((JSON.parse(str) as any)['inventory']);
     });
     unityContext.on("canvas", (canvas) => {
         canvas.focus();
@@ -234,7 +234,31 @@ const App = () => {
                 </p>
             </Segment>
             )
-        }
+        },
+        {
+            menuItem: 'Cheats',
+            pane: activePane == 3 && (
+                <Segment key={3} style={{ padding: '2em 1em', color: '#800080', backgroundColor:'rgba(76, 175, 80, 0.8)', fontFamily:'JoystixMonospace', fontSize:'13px'}} vertical>
+                    <p>
+                        Spel works with 3 types of values in its "code": items, magic items and elements. You can create elements and some magic
+                        items but normal items have to be picked up from the world.
+                        Magic items: orbs (they can be enchanted and create fireballs, etc), shield, etc.
+                    </p> 
+                    <p>
+                        The shop allows you to decompose spells into more low-level blocks that have more flexibility. Some shop deals include 
+                        passive deals, like the SharpShooter bundle, which allows you to throw items with the already known, release block.
+                    </p>
+                    <p>
+                        What are chants? In the old ages it was believed you couldn't actually cast spells without knowing its specific words.
+                        That is of course not true, you can cast spells without chants, but chants help you to focus and some of the have really
+                        powerfull effects, like mana regen and some type of immunity. What exactly are chants and why do they work? When humanity
+                        was left behind by the gods thousands of years ago, the gods said they will return, either to rule again or destroy us, 
+                        and their only presence in this world is through the blood of the mages, that can tap into their destructive powers by
+                        citing some specific words. That's right, those are chants.
+                    </p>
+                </Segment>
+            ),
+        },
     ];
 
     const flipActive = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, data: TabProps) => {
