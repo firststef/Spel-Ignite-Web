@@ -26,7 +26,8 @@ const BLOCKS_DICTIONARY: {[key:string]: object} = {};
     "say",
     "String",
     "move",
-    "rock"
+    "rock",
+    "arrow",
 ].forEach(el => {
     BLOCKS_DICTIONARY[el] = {
         type: el
@@ -517,6 +518,23 @@ Blockly.Blocks['rock'] = {
 };
 bs['rock'] = function (block: any) {
     return ['rock', bs.ORDER_ATOMIC];
+};
+
+
+// Rock
+Blockly.Blocks['arrow'] = {
+    init: function() {
+        let $ = (this as any);
+        $.appendDummyInput()
+            .appendField("arrow");
+        $.setOutput(true, "object");
+        $.setColour(230);
+        $.setTooltip("");
+        $.setHelpUrl("");
+    }
+};
+bs['arrow'] = function (block: any) {
+    return ['arrow', bs.ORDER_ATOMIC];
 };
 
 const generateSpel = (workspace: Blockly.Workspace): [string, string] => {
