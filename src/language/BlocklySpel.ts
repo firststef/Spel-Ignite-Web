@@ -64,7 +64,8 @@ Blockly.Blocks['castFire'] = {
 };
 bs['castFire'] = function (block: any) {
     var code = 
-    'create fire in soul.\n' +            
+    'create fire in soul.\n' + 
+    'move fire to left hand.\n' +           
     'release from left hand.';
     return code;
 };
@@ -88,6 +89,7 @@ bs['cast'] = function (block: any) {
     var value_element = bs.valueToCode(block, 'element', bs.ORDER_ATOMIC) as string;
     var code = 
     'create ' + value_element + ' in soul.\n' +
+    'move fire to left hand.\n' +
     'release from left hand.';
     return code;
 };

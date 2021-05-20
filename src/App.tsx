@@ -240,10 +240,18 @@ const App = () => {
             pane: activePane == 3 && (
                 <Segment key={3} style={{ padding: '2em 1em', color: '#800080', backgroundColor:'rgba(76, 175, 80, 0.8)', fontFamily:'JoystixMonospace', fontSize:'13px'}} vertical>
                     <p>
+                        Come back to this section for unlocked stuff in the game.
+                    </p>
+                    <p>
                         Spel works with 3 types of values in its "code": items, magic items and elements. You can create elements and some magic
                         items but normal items have to be picked up from the world.
                         Magic items: orbs (they can be enchanted and create fireballs, etc), shield, etc.
                     </p> 
+                    {inventory.includes('cast') && (
+                        <p>
+                            Congrats, you have unlocked a chant:"lord of daybreak, release thy flames". This removes mana cost for fire magic.
+                        </p>
+                    )}
                     <p>
                         The shop allows you to decompose spells into more low-level blocks that have more flexibility. Some shop deals include 
                         passive deals, like the SharpShooter bundle, which allows you to throw items with the already known, release block.
