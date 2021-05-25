@@ -23,6 +23,8 @@ const App = () => {
 
     const defaultInventory = Object.keys(BLOCKS_DICTIONARY);
     const [generatedInstructions, setGeneratedInstructions] = useState('');
+    const [loadProgress, setloadProgress] = useState(0);
+    const [loaded, setLoaded] = useState(false);
     const [showEditor, setshowEditor] = useState(false);
     const [inventory, setInventory] = useState(defaultInventory);
     const [activePane, setActivePane] = useState(0);
@@ -56,6 +58,12 @@ const App = () => {
     unityContext.on("error", (message) => {
         alert('Oops, SPEL IGNITE threw an error. You can send the developer a message if you want, but keep in mind this is a development build. ' +
         'The error message was: '+ message);
+    });
+    unityContext.on("progress", (progression) => {
+        setloadProgress(parseFloat(progression.toFixed(2)));
+    });
+    unityContext.on("loaded", () => {
+        setLoaded(true);
     });
 
     const documentationPanes = [
@@ -306,7 +314,18 @@ const App = () => {
                     </Sidebar>
 
                     <Sidebar.Pusher dimmed={showEditor} as="div">
-                        <Unity unityContext={unityContext} tabIndex={1} style={{width:"100%", height:"95vh", background:"transparent"}} className={"game-canvas"}/>                            
+                        {!loaded && (<p>{`Loading... ${loadProgress * 100}%`}</p>)}
+                        <Unity 
+                            unityContext={unityContext} 
+                            tabIndex={1} 
+                            style={{
+                                visibility: loaded ? "visible" : "hidden",
+                                width:"100%", 
+                                height:"95vh", 
+                                background:"transparent"
+                            }} 
+                            className={"game-canvas"}
+                        />                            
                     </Sidebar.Pusher>
                 </Sidebar.Pushable>
             </div>
