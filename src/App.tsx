@@ -240,6 +240,9 @@ const App = () => {
                     <span style={{color:'blue'}}> CODING</span>: For any bugs you find, please open an issue on the 
                     github <a href="https://github.com/firststef/Spel-Ignite-Game">repository</a>.
                 </p>
+                <p>
+                    Art credits go to <a href="https://elthen.itch.io/">elten</a>.
+                </p>
             </Segment>
             )
         },
