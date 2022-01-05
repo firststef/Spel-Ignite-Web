@@ -1,3 +1,5 @@
 # SPEL - WEB GAME
 
-- learn how to cast a simple spel
+The web application for the SPEL IGNITE GAME
+
+More info ![here](https://github.com/firststef/Spel-Ignite-Game)
